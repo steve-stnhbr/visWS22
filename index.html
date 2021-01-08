@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VolVis - Vis1</title>
+
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    <!-- include THREE.js -->
+    <script src="three.js/build/three.js"></script>
+    <script src="three.js/examples/js/controls/OrbitControls.js"></script>
+
+
+
+    <!-- include jQueryUI -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <!-- include Vis1 script -->
+    <script src="js/volume.js"></script>
+    <script src="js/cube.js"></script>
+    <script src="js/fbo.js"></script>
+    <script src="js/cubeShader.js"></script>
+    <script src="js/rayCastingShader.js"></script>
+    <script src="js/colorShader.js"></script>
+    <script src="js/vis1_volVis.js"></script>
+</head>
+
+<!-- call init function when page has loaded -->
+<body onload="init()">
+
+<h1>Vis1 THREE.js Exercise</h1>
+
+<!-- data selector -->
+<p>Select your data here: <input id="upload" type="file"></p>
+
+<!-- drawing canvas -->
+<div id="viewContainer"></div>
+
+</body>
+</html>
