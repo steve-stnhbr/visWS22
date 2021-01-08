@@ -16,7 +16,8 @@ class RayCastingShader {
             uniforms: {
                 volume: { value: volumeTexture },
                 frontCube: { value: frontFBO.renderTarget.texture },
-                backCube: { value: backFBO.renderTarget.texture }
+                backCube: { value: backFBO.renderTarget.texture },
+                iso: { value: 0.01 }
             },
             vertexShader: this.vertexShader(),
             fragmentShader: this.fragmentShader(),
@@ -32,6 +33,10 @@ class RayCastingShader {
         //         console.log(i + ": " + v);
         //     }
         // });
+    }
+
+    setIso(iso){
+        this.material.uniforms['iso'].value = iso;
     }
 
     vertexShader(){
@@ -56,6 +61,7 @@ class RayCastingShader {
         uniform sampler3D volume; 
         uniform sampler2D frontCube;
         uniform sampler2D backCube;
+        uniform float iso; 
         
         varying vec3 vPosition;
         varying vec2 texCoord; 
@@ -81,7 +87,7 @@ class RayCastingShader {
                 vec3 insideRay = rayPos - start; 
                 if(dot(insideRay, insideRay) > rayLen) break; 
                 float voxel = texture(volume, rayPos.xyz).r;
-                if(voxel >= 0.1){
+                if(voxel >= iso){
                     //fragPos = vec3(1.0, 1.0, 1.0); 
                     fragPos = rayPos; 
                     break; 

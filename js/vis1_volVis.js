@@ -2,6 +2,7 @@ let renderer, camera, scene, controls;
 let canvasWidth, canvasHeight = 0;
 let container = null;
 let frontFBO, backFBO = null;
+let volume = null;
 
 function init() {
     container = document.getElementById("viewContainer");
@@ -12,6 +13,7 @@ function init() {
     // https://threejs.org/docs/#examples/en/controls/OrbitControls
 
 
+    setIsoSlider(0.1);
 
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, canvasWidth / canvasHeight, 0.1, 1000 );
@@ -25,9 +27,9 @@ function init() {
                 console.log("data loaded: ");
 
                 let data = new Uint16Array(reader.result);
-                let volume = new Volume(data);
+                volume = new Volume(data);
 
-                resetVis(volume);
+                resetVis();
             };
             reader.readAsArrayBuffer(fileInput.files[0]);
         };
@@ -36,7 +38,7 @@ function init() {
 
 }
 
-function resetVis(volume){
+function resetVis(){
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( canvasWidth, canvasHeight );
@@ -77,5 +79,10 @@ function paint(){
     frontFBO.renderToTexture(renderer, camera);
     backFBO.renderToTexture(renderer, camera);
 
+    let iso = getIsoSlider();
+    console.log(iso);
+    volume.setIso(iso);
+
     renderer.render(scene, camera);
 }
+

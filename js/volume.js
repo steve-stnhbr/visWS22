@@ -22,10 +22,17 @@ class Volume {
 
 
         this.geometry = new THREE.PlaneGeometry( 2, 2 );
+        this.material = null;
+        this.shader = null;
     }
 
     getMesh(frontFBO, backFBO){
-        const material = new RayCastingShader(this, frontFBO, backFBO).material;
-        return new THREE.Mesh( this.geometry, material );
+        this.shader = new RayCastingShader(this, frontFBO, backFBO);
+        this.material = this.shader.material;
+        return new THREE.Mesh( this.geometry, this.material );
+    }
+
+    setIso(iso){
+        this.shader.setIso(iso);
     }
 }
