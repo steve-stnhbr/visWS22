@@ -25,7 +25,9 @@
     <script src="js/cubeShader.js"></script>
     <script src="js/rayCastingShader.js"></script>
     <script src="js/colorShader.js"></script>
+    <script src="js/camera.js"></script>
     <script src="js/vis1_volVis.js"></script>
+
 </head>
 
 <!-- call init function when page has loaded -->
@@ -40,6 +42,10 @@
 <div id="viewContainer"></div>
 
 <p>Iso (<span id="isoValue">unknown</span>): <div id="iso"></div></p>
+
+<!-- https://codepen.io/zthall/pen/NNOyey -->
+<input type="checkbox" id="play-pause" onclick="playPause()" /><label for="play-pause" id="play-pause-label" class="win-button"></label>
+
 
 </body>
 </html>

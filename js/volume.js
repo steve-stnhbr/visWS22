@@ -20,7 +20,6 @@ class Volume {
 
         console.log(this.voxels.length + " voxels loaded - max: " + this.max);
 
-
         this.geometry = new THREE.PlaneGeometry( 2, 2 );
         this.material = null;
         this.shader = null;
