@@ -4,6 +4,7 @@ class OrbitCamera {
         this.targetPos = targetPos;
         this.camera.lookAt(this.targetPos);
         this.radius = radius;
+        this.minRadius = radius / 6;
         this.maxRadius = radius * 2;
         this.phi = 0;
         this.theta = 0;
@@ -33,13 +34,13 @@ class OrbitCamera {
     #updateCamera(dx, dy, dz){
         this.phi += dx / 100.0;
         this.theta += dy / 100.0;
-        this.radius += dz / 30.0;
+        this.radius += dz / 10.0;
 
         const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
         this.theta = clamp(this.theta, -Math.PI / 2.0, Math.PI / 2.0);
-        this.radius = clamp(this.radius, 0, this.maxRadius);
+        this.radius = clamp(this.radius, this.minRadius, this.maxRadius);
 
-        this.camera.position.x = -this.radius * Math.sin(this.phi) * Math.cos(this.theta);
+        this.camera.position.x = -this.radius * Math.cos(this.theta)* Math.sin(this.phi);
         this.camera.position.y = -this.radius * Math.cos(this.theta) * Math.cos(this.phi);
         this.camera.position.z = this.radius * Math.sin(this.theta);
 

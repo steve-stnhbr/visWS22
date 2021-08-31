@@ -9,7 +9,7 @@ let play = false;
 function init() {
     container = document.getElementById("viewContainer");
     canvasWidth = window.innerWidth * 0.8;
-    canvasHeight = window.innerHeight * 0.8 - 70;
+    canvasHeight = window.innerHeight * 0.8 - 200;
 
     // https://threejs.org/docs/#manual/en/introduction/Creating-a-scene
     // https://threejs.org/docs/#examples/en/controls/OrbitControls
@@ -77,7 +77,52 @@ function resetVis(){
     //controls = new THREE.OrbitControls( camera, renderer.domElement );
     //controls.autoRotate = play;
 
+    createHistogram();
     paint();
+}
+
+function createHistogram(){
+    console.log(d3);
+    let bins = d3.bin().thresholds(200)(volume.voxels);
+    let width = window.innerWidth;
+    let height = 100;
+
+    let margin = ({top: 0, right: 10, bottom: 0, left: 0})
+
+    let x = d3.scaleLinear()
+        .domain([bins[0].x0, bins[bins.length - 1].x1])
+        .range([margin.left, width - margin.right]);
+
+    let y = d3.scalePow()
+        .exponent(0.2)
+        .domain([0, d3.max(bins, d => d.length)]).nice()
+        .range([height - margin.bottom, margin.top]);
+
+    let svg = d3.select("#histogramContainer")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    bins.forEach(b => console.log(y(b.length)));
+
+    svg.append("g")
+        .selectAll("rect")
+        .data(bins)
+        .join("rect")
+        .attr("x", d => x(d.x0) + 1)
+        .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
+        .attr("y", d => y(d.length))
+        .attr("height", d => y(0) - y(d.length))
+        .attr("fill", "white")
+        .on("mouseover", function(event, d) {
+            d3.select(this).attr("fill", "red");
+        })
+        .on("mouseout", function(event, d){
+            d3.select(this).attr("fill", "white");
+        });
+
+
+    console.log(bins);
 }
 
 function paint(){
