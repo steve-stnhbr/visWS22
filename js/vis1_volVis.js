@@ -18,12 +18,20 @@ let numBins = 100;
 
 let isInit = true;
 
+let hist = null;
+
 function init() {
     container = document.getElementById("viewContainer");
     canvasWidth = window.innerWidth * 0.8;
     canvasHeight = window.innerHeight * 0.8 - 200;
 
-    histogramWidth = window.innerWidth;
+    let histogramElement = d3.select("#histogramContainer");
+
+    hist = new HistogramSlider(window.innerWidth * 0.95, 100,
+        ({top: 0, right: 10, bottom: 0, left: 0}), [0.0, 1.0], 0.1,
+        histogramElement, 100);
+
+    histogramWidth = window.innerWidth * 0.95;
     histogramHeight = 100;
     let margin = ({top: 0, right: 10, bottom: 0, left: 0});
     histogramXRange = [margin.left, histogramWidth - margin.right];
@@ -93,7 +101,7 @@ function init() {
     // https://threejs.org/docs/#examples/en/controls/OrbitControls
 
 
-    setIsoSlider(0.1);
+    //setIsoSlider(0.1);
 
 
     renderer = new THREE.WebGLRenderer();
@@ -155,6 +163,8 @@ function resetVis(){
     //controls = new THREE.OrbitControls( camera, renderer.domElement );
     //controls.autoRotate = play;
 
+    hist.setData(volume.voxels, 0.2);
+
     createHistogram();
     paint();
 }
@@ -184,112 +194,35 @@ function createHistogram(){
         .range(["#fee8c8", "#e34a33"])
         .interpolate(d3.interpolateHcl);
 
-    // svg.selectAll("*").remove();
-    //
-    // histogram = svg.append("g")
-    //     .selectAll("rect")
-    //     .data(bins)
-    //     .enter().append("rect");
-
-
-    console.log(histogram.data(bins));
 
     histogram.data(bins)
         .join("rect")
+        .transition().duration(500)
         .attr("x", d => x(d.x0) + 1)
         .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
         .attr("y", d => (y(0)-y(max)) / 2 - len(d)/2)
         .attr("height", d => len(d))
         .attr("fill", d => color(d.length));
 
-
-    // let histogramHandler = histogram.data(bins);
-    //
-    // console.log(histogramHandler);
-    // console.log(histogram);
-    //
-    // histogramHandler.enter().append("rect");
-    //
-    // histogramHandler.attr("x", d => x(d.x0) + 1)
-    //     .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
-    //     .attr("y", d => (y(0)-y(max)) / 2 - len(d)/2)
-    //     .attr("height", d => len(d))
-    //     .attr("fill", "white");
-    //
-    // histogramHandler.exit().remove();
-
-
-    // histogram.data(bins).exit().transition()
-    //     .duration(300).remove();
-    //
-    //
-    // let randomColor = "#"+ Math.floor(Math.random()*16777215).toString(16);
-    //
-    // histogram.data(bins).enter().append("rect")
-    //     .attr("x", d => x(d.x0) + 1)
-    //     .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
-    //     .attr("y", d => (y(0)-y(max)) / 2 - len(d)/2)
-    //     .attr("height", d => len(d))
-    //     .attr("fill", randomColor);
-    //
-    //
-    //     histogram.data(bins)
-    //         .transition().duration(500)
-    //         .attr("x", d => x(d.x0) + 1)
-    //         .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
-    //         .attr("y", d => (y(0)-y(max)) / 2 - len(d)/2)
-    //         .attr("height", d => len(d))
-    //         .attr("fill", randomColor);
-    //         //.attr("fill", d => color(d.length));
-
-
-
-
-
-
-    //histogram.data(bins).exit().remove();
-
-
-    // svg.append("g")
-    //     .selectAll("rect")
-    //     .data(bins)
-    //     .join("rect")
-    //     .attr("x", d => x(d.x0) + 1)
-    //     .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
-    //     .attr("y", d => y(d.length))
-    //     .attr("height", d => y(0) - y(d.length))
-    //    .attr("fill", d => color(d.length));
-        // .on("mouseover", function(event, d) {
-        //     d3.select(this).attr("fill", "red");
-        // })
-        // .on("mouseout", function(event, d){
-        //     d3.select(this).attr("fill", "white");
-        // });
-
-
-    console.log(bins);
 }
 
 function paint(){
     requestAnimationFrame(paint);
 
-    //controls.update();
     orbitCamera.update();
 
 
     frontFBO.renderToTexture(renderer, camera);
     backFBO.renderToTexture(renderer, camera);
 
-    //let iso = getIsoSlider();
-    //console.log(iso);
-    volume.setIso(iso);
+    //volume.setIso(iso);
+    volume.setIso(hist.getSliderValue());
 
     renderer.render(scene, camera);
 }
 
 function playPause(){
     play = !play;
-    //controls.autoRotate = play;
     orbitCamera.autoRotate = play;
     console.log("plause: " + play);
     if(play) paint();
