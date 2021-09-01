@@ -7,7 +7,9 @@ class HistogramSlider{
 
         this.xRange = [margin.left, width - margin.right];
         this.yRange = [height - margin.bottom, margin.top];
-        this.x = null;
+        this.x = d3.scaleLinear()
+            .domain(this.domain)
+            .range(this.xRange);
         this.y = null;
 
         console.log(domElement);
@@ -45,7 +47,7 @@ class HistogramSlider{
             .attr("x", -sliderMargin.left)
             .attr("y", -sliderMargin.top)
             .attr('stroke-width', '5')
-            .attr('stroke', 'gray')
+            .attr('stroke', 'black')
             .attr("fill", "white")
             .attr("fill-opacity", 0.5)
             .call(drag);
@@ -60,10 +62,6 @@ class HistogramSlider{
 
         let max = d3.max(bins, d => d.length);
         let valueRange = [0, max];
-
-        this.x = d3.scaleLinear()
-            .domain([bins[0].x0, bins[bins.length - 1].x1])
-            .range(this.xRange);
 
         this.y = d3.scalePow()
             .exponent(exp)
@@ -86,11 +84,18 @@ class HistogramSlider{
             .attr("y", d => (that.y(0) - that.y(max)) / 2 - len(d)/2)
             .attr("height", d => len(d))
             .attr("fill", d => color(d.length));
+
+        this.histogram.on("click", function(event, d){
+            console.log(event.x);
+            that.sliderX = event.x - that.sliderWidth / 2;
+            that.slider.attr("stroke", "black");
+            that.#setSlider();
+        })
     }
 
     #dragStarted(event){
         console.log("STARTED");
-        this.slider.attr("stroke", "red");
+        this.slider.attr("stroke", "white");
         this.pointerX = event.x;
     }
     #dragStopped(){
@@ -105,6 +110,10 @@ class HistogramSlider{
         let dx = xin - this.pointerX;
         this.pointerX = xin;
         this.sliderX += dx;
+        this.#setSlider();
+    }
+
+    #setSlider(){
         this.slider.attr("x", this.sliderX);
     }
 
@@ -113,7 +122,8 @@ class HistogramSlider{
     }
 
     setSliderValue(value){
-        //TODO
+        this.sliderX = this.x(value);
+        this.#setSlider();
     }
 
 }

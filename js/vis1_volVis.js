@@ -17,6 +17,7 @@ function init() {
     hist = new HistogramSlider(window.innerWidth * 0.95, 100,
         ({top: 0, right: 10, bottom: 0, left: 0}), [0.0, 1.0],
         histogramElement, 100);
+    hist.setSliderValue(0.1);
 
 
     // https://threejs.org/docs/#manual/en/introduction/Creating-a-scene
@@ -64,7 +65,7 @@ function resetVis(){
     const volumeMesh = volume.getMesh(frontFBO, backFBO);
     scene.add(volumeMesh);
 
-    hist.setData(volume.voxels, 0.2);
+    hist.setData(volume.voxels, 0.25);
 
     paint();
 }
