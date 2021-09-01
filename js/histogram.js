@@ -33,24 +33,40 @@ class HistogramSlider{
         this.pointerX = 0;
         this.sliderX = 0;
 
-        let sliderMargin = ({top: 0, right: 3, bottom: 0, left: 3});
-        this.sliderWidth = this.width / this.numBins + sliderMargin.left + sliderMargin.right;
+        let sliderMargin = ({top: 0, right: 4, bottom: 0, left: 4});
+        this.sliderWidth = (this.width / this.numBins + sliderMargin.left + sliderMargin.right);
 
         let drag = d3.drag()
             .on("start", event => this.#dragStarted(event))
             .on("drag", event => this.#dragging(event))
             .on("end", event => this.#dragStopped(event));
 
-        this.slider = this.svg.append("rect")
+        this.sliderGroup = this.svg.append("g")
+            .call(drag);
+
+        this.slider = this.sliderGroup.append("rect")
             .attr("height", this.height + sliderMargin.top + sliderMargin.bottom)
             .attr("width", this.sliderWidth)
-            .attr("x", -sliderMargin.left)
-            .attr("y", -sliderMargin.top)
             .attr('stroke-width', '5')
             .attr('stroke', 'black')
             .attr("fill", "white")
-            .attr("fill-opacity", 0.5)
-            .call(drag);
+            .attr("fill-opacity", 0.5);
+
+        let textBoxWidth = this.sliderWidth + sliderMargin.right + sliderMargin.left;
+        this.sliderTextBackground = this.sliderGroup.append("rect")
+            .attr("height", 20)
+            .attr("width", textBoxWidth)
+            .attr("x", this.sliderWidth / 2 - textBoxWidth / 2)
+            .attr("y", 0)
+            .attr("fill", "black");
+
+        this.sliderText = this.sliderGroup.append("text")
+            .attr("x", this.sliderWidth / 2 - 13)
+            .attr("y", 17)
+            .style("fill", "white")
+            .text("");
+
+        this.duration = 0;
     }
 
     setData(data, exp){
@@ -95,12 +111,12 @@ class HistogramSlider{
 
     #dragStarted(event){
         console.log("STARTED");
-        this.slider.attr("stroke", "white");
+        this.slider.attr("fill", "red");
         this.pointerX = event.x;
     }
     #dragStopped(){
         console.log("stopped");
-        this.slider.attr("stroke", "black");
+        this.slider.attr("fill", "white");
     }
 
     #dragging(event){
@@ -110,11 +126,16 @@ class HistogramSlider{
         let dx = xin - this.pointerX;
         this.pointerX = xin;
         this.sliderX += dx;
+        this.duration = 0;
         this.#setSlider();
     }
 
     #setSlider(){
-        this.slider.attr("x", this.sliderX);
+        let that = this;
+        this.sliderGroup.transition().duration(this.duration).attr("transform", function() {
+            return "translate("+ (that.sliderX) + "," + 0 + ")";
+        });
+        this.sliderText.text(this.getSliderValue().toFixed(2));
     }
 
     getSliderValue(){
@@ -122,6 +143,7 @@ class HistogramSlider{
     }
 
     setSliderValue(value){
+        this.duration = 500;
         this.sliderX = this.x(value);
         this.#setSlider();
     }
