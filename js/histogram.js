@@ -1,10 +1,9 @@
 class HistogramSlider{
-    constructor(width, height, margin, domain, initValue, domElement, numBins){
+    constructor(width, height, margin, domain, domElement, numBins){
         this.width = width;
         this.height = height;
         this.data = null;
         this.domain = domain;
-        this.initValue = initValue;
 
         this.xRange = [margin.left, width - margin.right];
         this.yRange = [height - margin.bottom, margin.top];
@@ -31,7 +30,6 @@ class HistogramSlider{
 
         this.pointerX = 0;
         this.sliderX = 0;
-        this.value = 0;
 
         let sliderMargin = ({top: 0, right: 3, bottom: 0, left: 3});
         this.sliderWidth = this.width / this.numBins + sliderMargin.left + sliderMargin.right;
@@ -108,12 +106,10 @@ class HistogramSlider{
         this.pointerX = xin;
         this.sliderX += dx;
         this.slider.attr("x", this.sliderX);
-        this.value = this.x.invert(this.sliderX);
-        console.log(this.value);
     }
 
     getSliderValue(){
-        return this.value;
+        return this.x.invert(this.sliderX);
     }
 
     setSliderValue(value){
