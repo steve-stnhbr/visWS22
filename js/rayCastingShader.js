@@ -87,9 +87,13 @@ class RayCastingShader {
         }
         
         
-        vec3 light(vec3 color, vec3 viewDir, vec3 normal, float ambient, float diffuse){
-            diffuse = diffuse * dot(-viewDir, normal); 
-            return (ambient + diffuse) * color; 
+        vec3 Phong(vec3 viewDir, vec3 normal, vec3 color, float k_ambient, float k_diffuse, float k_specular)
+        {
+            float ambient  = k_ambient;
+            float diffuse  = max(k_diffuse * dot(-viewDir, normal), 0.0);
+            float shiny = max(dot(reflect(-viewDir, normal), viewDir), 0.0);
+            float specular = k_specular * shiny * shiny * shiny;
+            return (ambient + diffuse) * color + specular;
         }
         
         void main(){
@@ -97,35 +101,54 @@ class RayCastingShader {
             vec3 start = texture(frontCube, texCoord).rgb; 
             vec3 end = texture(backCube, texCoord).rgb; 
             vec3 ray = end - start; 
-            float rayLen = dot(ray, ray); 
+            float rayLenSquared = dot(ray, ray);
             vec3 dir = normalize(ray); 
-            vec3 step = dir * vec3(0.002); 
-            float endDist = dot(end, end); 
-            float startDist = dot(start, start); 
+            vec3 step = dir * vec3(0.001);
+            //float endDist = dot(end, end);
+            //float startDist = dot(start, start);
             
             // render bounding cube
-            //gl_FragColor = vec4(vec3(rayLen * 0.5), 1.0); 
+            //gl_FragColor = vec4(vec3(rayLenSquared * 0.5), 1.0);
             
-            vec3 color = vec3(0); 
-            vec3 voxelColor = vec3(1); 
+            vec3 color = vec3(0);
+            vec3 voxelColor = vec3(0.8, 0.3, 0.3);
             
-            
-            vec3 rayPos = start;
-            vec3 fragPos = vec3(0); 
-            for (int i; i < 1024; i++) {
-                vec3 insideRay = rayPos - start; 
-                if(dot(insideRay, insideRay) > rayLen) break; 
-                float voxel = texture(volume, rayPos.xyz).r;
-                if(voxel >= iso){
-                    //fragPos = vec3(1.0, 1.0, 1.0); 
-                    vec3 normal = gradient(rayPos);
-                    color = light(voxelColor, dir, normal, 0.2, 0.8); 
-                    fragPos = rayPos; 
-                    break; 
+            vec3 rayPosPrev = start;
+            float voxelPrev = texture(volume, rayPosPrev.xyz).r;
+
+            vec3 rayPosCurr;
+            float voxelCurr;
+
+            vec3 fragPos = vec3(0.5);
+
+            for (int i = 0; i < 2048; i++) {
+
+                rayPosCurr = rayPosPrev + step;
+                voxelCurr = texture(volume, rayPosCurr.xyz).r;
+
+                vec3 insideRay = rayPosCurr - start;
+                if(dot(insideRay, insideRay) > rayLenSquared) break;
+
+                //checking voxelPrev < iso <= voxelCurr OR voxelCurr < iso <= voxelPrev
+                float low = min(voxelPrev, voxelCurr);
+                float high = max(voxelPrev, voxelCurr);
+
+                if (low < iso && iso <= high) {
+
+                    float interpolant = (iso - voxelPrev)/(voxelCurr - voxelPrev);
+
+                    fragPos = rayPosPrev + (interpolant * step); // or mix(rayPosPrev, rayPosCurr, interpolant)
+
+                    vec3 normal = gradient(fragPos);
+
+                    color = Phong(dir, normal, voxelColor, 0.3, 0.7, 0.2);
+
+                    rayPosPrev = normal;
+                    break;
                 }
-                fragPos = vec3(rayLen * 0.5); 
-                //fragPos = rayPos; 
-                rayPos = rayPos + step; 
+
+                rayPosPrev = rayPosCurr;
+                voxelPrev = voxelCurr;
             }
             gl_FragColor = vec4(color, 1.0);
             //gl_FragColor = vec4(fragPos, 1.0); 
