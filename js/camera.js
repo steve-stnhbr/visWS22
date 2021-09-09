@@ -4,7 +4,7 @@ class OrbitCamera {
         this.targetPos = targetPos;
         this.camera.lookAt(this.targetPos);
         this.radius = radius;
-        this.minRadius = radius / 6;
+        this.minRadius = radius / 2;
         this.maxRadius = radius * 2;
         this.phi = 0;
         this.theta = 0;

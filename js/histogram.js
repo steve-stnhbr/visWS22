@@ -105,23 +105,20 @@ class HistogramSlider{
             console.log(event.x);
             that.sliderX = event.x - that.sliderWidth / 2;
             that.slider.attr("stroke", "black");
+            that.duration = 500; 
             that.#setSlider();
         })
     }
 
     #dragStarted(event){
-        console.log("STARTED");
         this.slider.attr("fill", "red");
         this.pointerX = event.x;
     }
     #dragStopped(){
-        console.log("stopped");
         this.slider.attr("fill", "white");
     }
 
     #dragging(event){
-        console.log(event.x);
-        console.log(this.width);
         let xin = Math.min(Math.max(event.x, 0), this.width - this.sliderWidth);
         let dx = xin - this.pointerX;
         this.pointerX = xin;

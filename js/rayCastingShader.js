@@ -83,7 +83,7 @@ class RayCastingShader {
             s1.z = texture(volume, uvw-deltaW).r;
             s2.z = texture(volume, uvw+deltaW).r;
             
-            return normalize(s1-s2); 
+            return s1-s2; 
         }
         
         
@@ -141,7 +141,11 @@ class RayCastingShader {
 
                     vec3 normal = gradient(fragPos);
 
-                    color = Phong(dir, normal, voxelColor, 0.3, 0.7, 0.2);
+                    float l = length(normal) * 10.0;
+                    
+                    normal = normalize(normal);
+
+                    color = Phong(dir, normal, vec3(l, 1.0, 1.0), 0.3, 0.7, 0.2);
 
                     rayPosPrev = normal;
                     break;
