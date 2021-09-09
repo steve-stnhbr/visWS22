@@ -69,7 +69,7 @@ class RayCastingShader {
         vec3 gradient(vec3 uvw){
             vec3 s1, s2; 
             
-            float DELTA = 0.01; 
+            float DELTA = 0.004; 
             vec3 deltaU = vec3(DELTA,0.0,0.0); 
             vec3 deltaV = vec3(0.0,DELTA,0.0); 
             vec3 deltaW = vec3(0.0,0.0,DELTA);
@@ -94,6 +94,14 @@ class RayCastingShader {
             float shiny = max(dot(reflect(-viewDir, normal), viewDir), 0.0);
             float specular = k_specular * shiny * shiny * shiny;
             return (ambient + diffuse) * color + specular;
+        }
+        
+        vec3 hsv2rgb(float h, float s, float v)
+        {
+            vec3 c = vec3(h, s, v);
+            vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+            return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
         }
         
         void main(){
@@ -141,11 +149,11 @@ class RayCastingShader {
 
                     vec3 normal = gradient(fragPos);
 
-                    float l = length(normal) * 10.0;
+                    float l = length(normal);
                     
-                    normal = normalize(normal);
+                    //normal = normalize(normal);
 
-                    color = Phong(dir, normal, vec3(l, 1.0, 1.0), 0.3, 0.7, 0.2);
+                    color = hsv2rgb(l, 0.6, 1.0); //Phong(dir, normal, vec3(l, 1.0, 1.0), 0.3, 0.7, 0.2);
 
                     rayPosPrev = normal;
                     break;
