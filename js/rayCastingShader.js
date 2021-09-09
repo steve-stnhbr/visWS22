@@ -69,7 +69,7 @@ class RayCastingShader {
         vec3 gradient(vec3 uvw){
             vec3 s1, s2; 
             
-            float DELTA = 0.004; 
+            float DELTA = 0.008; 
             vec3 deltaU = vec3(DELTA,0.0,0.0); 
             vec3 deltaV = vec3(0.0,DELTA,0.0); 
             vec3 deltaW = vec3(0.0,0.0,DELTA);
