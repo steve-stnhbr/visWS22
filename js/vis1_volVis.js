@@ -72,8 +72,9 @@ function resetVis(){
 
 function paint(){
 
-    orbitCamera.update();
+    if (!volume) return;
 
+    orbitCamera.update();
 
     frontFBO.renderToTexture(renderer, camera);
     backFBO.renderToTexture(renderer, camera);
