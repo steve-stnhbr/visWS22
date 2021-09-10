@@ -133,6 +133,7 @@ class HistogramSlider{
             return "translate("+ (that.sliderX) + "," + 0 + ")";
         });
         this.sliderText.text(this.getSliderValue().toFixed(2));
+        requestAnimationFrame(paint);
     }
 
     getSliderValue(){

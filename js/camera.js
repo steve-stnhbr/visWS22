@@ -45,6 +45,8 @@ class OrbitCamera {
         this.camera.position.z = this.radius * Math.sin(this.theta);
 
         this.camera.lookAt(this.targetPos);
+
+        requestAnimationFrame(paint);
     }
 
     #onMouseDown(event){

@@ -29,7 +29,7 @@ function init() {
     container.appendChild( renderer.domElement );
 
     // read and parse volume file
-    fileInput = document.getElementById("upload");//,
+    fileInput = document.getElementById("upload");
     fileInput.addEventListener('change', readFile);
 
 
@@ -67,11 +67,10 @@ function resetVis(){
 
     hist.setData(volume.voxels, 0.25);
 
-    paint();
+    requestAnimationFrame(paint);
 }
 
 function paint(){
-    requestAnimationFrame(paint);
 
     orbitCamera.update();
 
@@ -89,5 +88,5 @@ function playPause(){
     play = !play;
     orbitCamera.autoRotate = play;
     console.log("plause: " + play);
-    if(play) paint();
+    if(play) requestAnimationFrame(paint);
 }
