@@ -110,6 +110,12 @@ class RayCastingShader {
             vec3 end = texture(backCube, texCoord).rgb; 
             vec3 ray = end - start; 
             float rayLenSquared = dot(ray, ray);
+
+            if (rayLenSquared < 0.000001) {
+               gl_FragColor = vec4(0.0);
+               return;
+            }
+
             vec3 dir = normalize(ray); 
             vec3 step = dir * vec3(0.001);
             //float endDist = dot(end, end);
