@@ -104,6 +104,38 @@ class RayCastingShader {
             return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
         }
         
+        //fixed transfer function for now
+        vec4 TFfixed(float x, float density)
+        {
+            vec4 res; //RGB + opacity                
+            
+            if(density > 0.1 && density < 0.3)
+            { 
+              res = vec4(vec3(0.7, 0.2, 0.4), 0.2);
+            }
+            
+            if(density > 0.3 && density < 0.5)
+            {                
+                res = vec4(vec3(0.1, 0.7, 0.4), 0.4);
+            }
+            
+            if(density > 0.5 && density < 0.7)
+            {                
+                res = vec4(vec3(0.1, 0.6, 0.2), 0.6);
+            }
+                       
+            
+            if(density > 0.7 && density < 1.0)
+            {                
+                res = vec4(vec3(0.2, 0.5, 0.8), 0.7);
+            }
+            
+            return res;
+            
+        }                    
+        
+        //
+        
         void main(){
             vec3 uvw = vec3(vPosition.x, vPosition.y ,vPosition.z);
             vec3 start = texture(frontCube, texCoord).rgb; 
@@ -126,9 +158,17 @@ class RayCastingShader {
 
             vec3 rayPosCurr;
             float voxelCurr;
+            
+            //variables for alpha compositing
+            vec3 colCurr;
+            vec3 colAcc = vec3(0);
+            vec3 colOut;
+            float alphaCurr;
+            float alphaAcc = 0.0;
+            float alphaOut;
+            //
 
-            vec3 fragPos = vec3(0.5);
-
+            
             for (int i = 0; i < 2048; i++) {
 
                 rayPosCurr = rayPosPrev + step;
@@ -136,35 +176,26 @@ class RayCastingShader {
 
                 vec3 insideRay = rayPosCurr - start;
                 if(dot(insideRay, insideRay) > rayLenSquared) break;
-
-                //checking voxelPrev < iso <= voxelCurr OR voxelCurr < iso <= voxelPrev
-                float low = min(voxelPrev, voxelCurr);
-                float high = max(voxelPrev, voxelCurr);
-
-                if (low < iso && iso <= high) {
-
-                    float interpolant = (iso - voxelPrev)/(voxelCurr - voxelPrev);
-
-                    fragPos = rayPosPrev + (interpolant * step); // or mix(rayPosPrev, rayPosCurr, interpolant)
-
-                    vec3 normal = gradient(fragPos);
-
-                    float l = length(normal);
-                    
-                    //normal = normalize(normal);
-
-                    color = hsv2rgb(l, 0.6, 1.0); //Phong(dir, normal, vec3(l, 1.0, 1.0), 0.3, 0.7, 0.2);
-
-                    rayPosPrev = normal;
-                    break;
-                }
-
+                
+                //---alpha compositing, Front-to-Back with early ray termination
+                vec4 tf = TFfixed(voxelCurr, voxelCurr);
+                colCurr = tf.rgb;
+                alphaCurr = tf.a;
+                
+                colOut = colCurr * alphaCurr * (1.0-alphaAcc) + colAcc;
+                alphaOut = alphaCurr * (1.0-alphaAcc) + alphaAcc;
+                               
+                colAcc = colOut;
+                alphaAcc = alphaOut;
+                
+                if(alphaAcc > 0.99) break;               
+                //---
+                
                 rayPosPrev = rayPosCurr;
-                voxelPrev = voxelCurr;
+                
             }
-            gl_FragColor = vec4(color, 1.0);
-            //gl_FragColor = vec4(fragPos, 1.0); 
-        }
+            gl_FragColor = vec4(colAcc, alphaAcc);
+            }
         `;
     }
 }
