@@ -105,31 +105,25 @@ class RayCastingShader {
         }
         
         //fixed transfer function for now
-        vec4 TFfixed(float x, float density)
+        vec4 TFfixed(float density)
         {
             vec4 res; //RGB + opacity                
             
             if(density > 0.1 && density < 0.3)
             { 
-              res = vec4(vec3(0.7, 0.2, 0.4), 0.2);
+              res = vec4(vec3(0.9, 0.7, 0.5), 0.01); //light brown
             }
             
             if(density > 0.3 && density < 0.5)
             {                
-                res = vec4(vec3(0.1, 0.7, 0.4), 0.4);
+                res = vec4(vec3(0.8, 0.4, 0.1), 0.3); //middle brown
             }
             
-            if(density > 0.5 && density < 0.7)
+            if(density > 0.5 && density < 1.0) //dark brown
             {                
-                res = vec4(vec3(0.1, 0.6, 0.2), 0.6);
-            }
-                       
-            
-            if(density > 0.7 && density < 1.0)
-            {                
-                res = vec4(vec3(0.2, 0.5, 0.8), 0.7);
-            }
-            
+                res = vec4(vec3(0.5, 0.3, 0.1), 0.6);
+            }                    
+                                 
             return res;
             
         }                    
@@ -184,7 +178,7 @@ class RayCastingShader {
                 if(dot(insideRay, insideRay) > rayLenSquared) break;
                 
                 //---alpha compositing, Front-to-Back with early ray termination
-                vec4 tf = TFfixed(voxelCurr, voxelCurr);
+                vec4 tf = TFfixed(voxelCurr);
                 colCurr = tf.rgb;
                 alphaCurr = tf.a;
                 

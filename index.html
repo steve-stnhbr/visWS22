@@ -15,6 +15,7 @@
 
     <!-- include Vis1 script -->
     <script src="js/histogram.js"></script>
+    <script src="js/transferfunction.js"></script>
     <script src="js/volume.js"></script>
     <script src="js/cube.js"></script>
     <script src="js/fbo.js"></script>
@@ -34,8 +35,16 @@
 <!-- data selector -->
 <p>Select your data here: <input id="upload" type="file"></p>
 
-<!-- volume rendering container -->
-<div id="viewContainer"></div>
+
+<div class="container">
+
+    <!-- volume rendering container -->
+    <div id="viewContainer"></div>
+
+    <!-- container for interactive transfer function -->
+    <div id="tfContainer"></div>
+
+</div>
 
 <!-- auto play / pause button -->
 <!-- https://codepen.io/zthall/pen/NNOyey -->

@@ -7,17 +7,22 @@ let volume = null;
 let fileInput = null;
 let play = false;
 let hist = null;
+let tf = null;
 
 function init() {
     container = document.getElementById("viewContainer");
-    canvasWidth = window.innerWidth * 0.8;
-    canvasHeight = window.innerHeight * 0.8 - 200;
+    canvasWidth = window.innerWidth * 0.7;
+    canvasHeight = window.innerHeight * 0.5;
+
+    let transferFunctionElement = d3.select("#tfContainer");
+    tf = new TransferFunction(window.innerWidth * 0.3, window.innerHeight * 0.5, transferFunctionElement, 3);
 
     let histogramElement = d3.select("#histogramContainer");
     hist = new HistogramSlider(window.innerWidth * 0.95, 100,
         ({top: 0, right: 10, bottom: 0, left: 0}), [0.0, 1.0],
         histogramElement, 100);
     hist.setSliderValue(0.1);
+
 
 
     // https://threejs.org/docs/#manual/en/introduction/Creating-a-scene
