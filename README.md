@@ -4,6 +4,12 @@ Javascript files should go to folder 'js' and end with '.js'. All new javascript
 
 Recommended IDE: Webstorm (free educational version available using TU Wien e-mail address)
 
+*Important*: do not run index.html from the file system! Only execute it from inside WebStorm 
+(by selecting a browser icon from the top right panel that appears when you open index.html) 
+or from hosting the project within another web server. Opening index.html directly in the browser without a server
+will result in an error when trying to load the the .essl shader files. 
+
+
 ## Shaders
 
 .essl is the OpenGL ES shading language. Shader files should all be located in the folder 'shaders' and end with '.essl'.  
