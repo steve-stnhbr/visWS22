@@ -1,6 +1,6 @@
 class RayCastingShader extends Shader {
     constructor(volume, frontFBO, backFBO){
-        super("raycasting_vert", "raycasting_frag"); //pseudoIsosurface_frag (previous isosurfacing)
+        super("raycasting_vert", "pseudoIsosurface_frag");
 
         const volumeTexture = new THREE.DataTexture3D( volume.voxels, volume.width, volume.height, volume.depth );
         volumeTexture.format =  THREE.RedFormat;
