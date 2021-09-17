@@ -7,17 +7,23 @@ let volume = null;
 let fileInput = null;
 let play = false;
 let hist = null;
+let tf = null;
+let testShader = null;
 
 function init() {
     container = document.getElementById("viewContainer");
-    canvasWidth = window.innerWidth * 0.8;
-    canvasHeight = window.innerHeight * 0.8 - 200;
+    canvasWidth = window.innerWidth * 0.7;
+    canvasHeight = window.innerHeight * 0.5;
+
+    let transferFunctionElement = d3.select("#tfContainer");
+    tf = new TransferFunction(window.innerWidth * 0.3, window.innerHeight * 0.5, transferFunctionElement, 3);
 
     let histogramElement = d3.select("#histogramContainer");
     hist = new HistogramSlider(window.innerWidth * 0.95, 100,
         ({top: 0, right: 10, bottom: 0, left: 0}), [0.0, 1.0],
         histogramElement, 100);
     hist.setSliderValue(0.1);
+
 
 
     // https://threejs.org/docs/#manual/en/introduction/Creating-a-scene
@@ -32,7 +38,8 @@ function init() {
     fileInput = document.getElementById("upload");
     fileInput.addEventListener('change', readFile);
 
-
+    // dummy example for students
+    testShader = new TestShader([255.0, 255.0, 0.0]);
 
 }
 
@@ -49,20 +56,30 @@ function readFile(){
     reader.readAsArrayBuffer(fileInput.files[0]);
 }
 
-function resetVis(){
+async function resetVis(){
 
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, canvasWidth / canvasHeight, 0.1, 1000 );
 
+    /* Keep this block for dummy scene given to students */
+    const testCube = new THREE.BoxGeometry(100, 100, 100);
+    const testMaterial = testShader.material;
+    await testShader.load();
+    const testMesh = new THREE.Mesh(testCube, testMaterial);
+    //scene.add(testMesh);
+    /* end dummy scene */
 
     let cube = new BoundingCube();
 
-    frontFBO = new FBO(canvasWidth, canvasHeight, cube.getFrontMesh(volume.scale), camera, renderer);
-    backFBO = new FBO(canvasWidth, canvasHeight, cube.getBackMesh(volume.scale), camera, renderer);
+    let frontMesh = await cube.getFrontMesh(volume.scale);
+    let backMesh = await cube.getBackMesh(volume.scale);
+
+    frontFBO = new FBO(canvasWidth, canvasHeight, frontMesh, camera, renderer);
+    backFBO = new FBO(canvasWidth, canvasHeight, backMesh, camera, renderer);
 
     orbitCamera = new OrbitCamera(camera, new THREE.Vector3(0,0,0), 2*volume.max, renderer.domElement);
 
-    const volumeMesh = volume.getMesh(frontFBO, backFBO);
+    const volumeMesh = await volume.getMesh(frontFBO, backFBO);
     scene.add(volumeMesh);
 
     hist.setData(volume.voxels, 0.25);

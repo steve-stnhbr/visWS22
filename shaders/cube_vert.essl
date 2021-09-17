@@ -1,0 +1,9 @@
+varying vec3 vPosition;
+uniform vec3 scale;
+
+void main() {
+    // this is a test comment
+    vPosition = position + vec3(0.5, 0.5, 0.5);
+    vec4 mvPosition = modelViewMatrix * vec4( position * scale, 1.0);
+    gl_Position = projectionMatrix * mvPosition;
+}

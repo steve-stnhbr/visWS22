@@ -1,0 +1,7 @@
+varying vec3 vPosition;
+
+void main(){
+    // this is a test comment
+    vec3 uvw = vec3(vPosition.x, vPosition.y ,vPosition.z);
+    gl_FragColor = vec4(uvw, 1.0);
+}

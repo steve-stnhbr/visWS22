@@ -12,7 +12,6 @@ class Volume {
 
         // const float value = float(vecData[i]) / 4095.0f;
         let floatArray = [];
-        let that = this;
         uint16Array.slice(3).forEach(function(voxel){
             floatArray.push(voxel / 4095.0);
         });
@@ -25,8 +24,9 @@ class Volume {
         this.shader = null;
     }
 
-    getMesh(frontFBO, backFBO){
+    async getMesh(frontFBO, backFBO){
         this.shader = new RayCastingShader(this, frontFBO, backFBO);
+        await this.shader.load();
         this.material = this.shader.material;
         return new THREE.Mesh( this.geometry, this.material );
     }
