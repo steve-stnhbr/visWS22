@@ -58,6 +58,18 @@ class TransferFunction{
             .attr("fill", "white")
             .text("intensity");
 
+        //functions for transformations to range [0,1]
+        var density_transform = d3.scaleLinear()
+            .domain([margin.left, width - margin.left - margin.right])
+            .range([0,1]);
+
+        var intensity_transform = d3.scaleLinear()
+            .domain([height - margin.bottom - margin.top, margin.top])
+            .range([0,1]);
+        //
+
+        var anchorPoint1 = {x: density_scale(0), y: intensity_scale(0)};
+        var anchorPoint2 = {x: density_scale(1), y: intensity_scale(1)};
 
         //initial values for control points (R,G,B and opacity)
         var opacity_data = [];
@@ -106,10 +118,10 @@ class TransferFunction{
         this.appendPath(path, blue_data, "blue", "blueLine");
         this.appendPath(path, green_data, "green", "greenLine");
 
-        this.appendControlPoints(path, opacity_data, "grey", ".opacityLine");
-        this.appendControlPoints(path, red_data, "red", ".redLine");
-        this.appendControlPoints(path, blue_data, "blue", ".blueLine");
-        this.appendControlPoints(path, green_data, "green", ".greenLine");
+        this.appendControlPoints(path, opacity_data, "grey", ".opacityLine", density_transform, intensity_transform, anchorPoint1, anchorPoint2);
+        this.appendControlPoints(path, red_data, "red", ".redLine", density_transform, intensity_transform, anchorPoint1, anchorPoint2);
+        this.appendControlPoints(path, blue_data, "blue", ".blueLine", density_transform, intensity_transform, anchorPoint1, anchorPoint2);
+        this.appendControlPoints(path, green_data, "green", ".greenLine", density_transform, intensity_transform, anchorPoint1, anchorPoint2);
 
 
     }
@@ -127,7 +139,7 @@ class TransferFunction{
     //to draw the control points as circles
     //every control point can be dragged to a new location
     //the path is updated accordingly
-    appendControlPoints(path, data, color, def){
+    appendControlPoints(path, data, color, def, tfDensity, tfIntensity, aP1, aP2){
         this.svg.selectAll(".dot")
             .data(data)
             .enter()
@@ -148,14 +160,44 @@ class TransferFunction{
         }
 
         function dragged(event, d) {
-            d3.select(this).attr("cx", d.xPixel = event.x).attr("cy", d.yPixel = event.y);
+
+            //update the pixel coordinates
+            var checked = check(event.x, event.y);
+
+            d3.select(this)
+                .attr("cx", d.xPixel = checked.x)
+                .attr("cy", d.yPixel = checked.y);
+
+            //update the density/intensity values
+            d.xDensity = tfDensity(d.xPixel);
+            d.yIntensity = tfIntensity(d.yPixel);
+
             d3.select("svg").select(def).attr("d", path(data));
+
         }
 
         function dragended(d) {
             d3.select(this).attr("stroke", null);
         }
+
+        //make sure the control points stay in the axis coordinate space
+        function check(x, y){
+
+            let xCheck = x;
+            let yCheck = y;
+
+            if (x < aP1.x){ xCheck = aP1.x};
+            if (x > aP2.x){ xCheck = aP2.x};
+
+            if (y > aP1.y){ yCheck = aP1.y};
+            if (y < aP2.y){ yCheck = aP2.y};
+
+            return {x: xCheck, y: yCheck};
+
+
+        }
     }
+
 
 
 
