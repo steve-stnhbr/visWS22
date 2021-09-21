@@ -21,6 +21,9 @@ class Shader {
         await this.#loadShader("fragmentShader", this.fragmentProgram);
     }
 
+    // use the type parameter for array variants that are not supported by THREE.Uniform yet:
+    // e.g., v2v (array of THREE.Vector2), v3v (array of THREE.Vector3) etc.
+    // otherwise only set key and value
     setUniform(key, value, type){
         if(typeof type !== 'undefined'){
             this.material.uniforms[key] = {
