@@ -21,7 +21,15 @@ class Shader {
         await this.#loadShader("fragmentShader", this.fragmentProgram);
     }
 
-    setUniform(key, value){
-        this.material.uniforms[key] = new THREE.Uniform(value);
+    setUniform(key, value, type){
+        if(typeof type !== 'undefined'){
+            this.material.uniforms[key] = {
+                'type': type,
+                'value': value
+            };
+        }
+        else{
+            this.material.uniforms[key] = new THREE.Uniform(value);
+        }
     }
 }
