@@ -88,10 +88,12 @@ class TransferFunction{
                 return d.yPixel;
             });
 
-        this.#initControlPoints([[0.2, 0.1], [0.4, 0.3], [0.7, 0.6]], "#ddd", "opacityLine");
-        this.#initControlPoints([[0.2, 0.9], [0.5, 0.8], [0.8, 0.6]], "#f44", "redLine");
-        this.#initControlPoints([[0.1, 0.5], [0.4, 0.1], [0.7, 0.1]], "#44f", "blueLine");
-        this.#initControlPoints([[0.3, 0.7], [0.5, 0.4], [0.9, 0.3]], "#4f4", "greenLine");
+        let x1 = 0.0, x2 = 0.5, x3 = 1.0;
+        let y1 = 1.0, y2 = 0.9, y3 = 0.8, y4 = 0.7;
+        this.initControlPoints([[x1, y1], [x2, y1], [x3, y1]], "#ddd", "opacityLine");
+        this.initControlPoints([[x1, y2], [x2, y2], [x3, y2]], "#8B0000", "redLine");
+        this.initControlPoints([[x1, y3], [x2, y3], [x3, y3]], "#35baf6", "blueLine");
+        this.initControlPoints([[x1, y4], [x2, y4], [x3, y4]], "#006400", "greenLine");
 
     }
 
@@ -124,45 +126,106 @@ class TransferFunction{
             .attr("fill", "#444"); //d => color(d.length)
     }
 
-    #initControlPoints(points, color, def){
+    initControlPoints(points, color, def){
         let that = this;
         let controlPoints = [];
         points.forEach((p,i) => controlPoints.push(new ControlPoint(i, p[0], p[1],
             that.density_scale(p[0]), that.intensity_scale(p[1]))));
-        this.#appendPath(controlPoints, color, def);
-        this.#appendControlPoints(controlPoints, color, def);
+        this.appendPath(controlPoints, color, def);
+        this.appendControlPoints(controlPoints, color, def);
+    }
+
+    updatePath(data, def){
+        d3.select("svg").select("#"+def).attr("d", this.path(data));
+    }
+
+    getDensityIntensity(event){
+        return {
+            x: this.density_scale.invert(event.offsetX),
+            y: this.intensity_scale.invert(event.offsetY)
+        }
     }
 
     //to draw a path between the control points of a channel (RGB, opacity)
-    #appendPath(data, color, def){
+    appendPath(data, color, def){
+        let that = this;
+
         this.svg
             .append("path")
             .attr("id", def)
             .attr("d", this.path(data))
             .attr("stroke", color)
-            .attr("fill", "none");
+            .attr("stroke-width", 4)
+            .attr("fill", "none")
+            .on("click", click);
+
+        function click(event){
+            // add control point
+            if(event.ctrlKey){
+                let p = that.getDensityIntensity(event);
+                let index = data.length;
+                console.log(data);
+                for(let i = 0; i < data.length; i++){
+                    if(data[i].xDensity > p.x){
+                        index = i;
+                        break;
+                    }
+                }
+                let controlPoint = new ControlPoint(index, p.x, p.y,
+                    that.density_scale(p.x), that.intensity_scale(p.y));
+                data.splice(index, 0, controlPoint);
+
+                that.updatePath(data, def);
+                that.appendControlPoints(data, color, def);
+            }
+        }
     }
 
     //to draw the control points as circles
     //every control point can be dragged to a new location
     //the path is updated accordingly
-    #appendControlPoints(data, color, def){
+    appendControlPoints(data, color, def){
         let that = this;
+
+        // not the most elegant solution, tbh...
+        // todo: try join
+        d3.select("svg").selectAll("."+def).remove();
 
         this.svg.selectAll(".dot")
             .data(data)
             .enter()
             .append("circle")
-            .attr("r", 5)
+            .attr("class", def)
+            .attr("r", 8)
             .attr("cx", function(d) {return d.xPixel;})
             .attr("cy", function(d) {return d.yPixel;})
             .attr("fill", color)
+            .on("click", click)
             .call(d3.drag()
                 .subject(d3.select(this))
                 .on("start", dragstarted)
                 .on("drag", dragged)
                 .on("end", dragended)
             );
+
+        function click(event){
+            // remove control point
+            if(event.altKey){
+                console.log("remove me!");
+                let p = that.getDensityIntensity(event);
+                let eps = 0.01;
+                for(let i = 0; i < data.length; i++){
+                    let x = data[i].xDensity;
+                    let y = data[i].yIntensity;
+                    if(Math.abs(p.x - x) < eps && Math.abs(p.y - y) < eps){
+                        data.splice(i, 1);
+                        break;
+                    }
+                }
+                d3.select(this).remove();
+                that.updatePath(data, def);
+            }
+        }
 
         function dragstarted() {
             d3.select(this).raise().attr("stroke", "black");
@@ -181,7 +244,7 @@ class TransferFunction{
             d.xDensity = that.density_scale.invert(d.xPixel);
             d.yIntensity =  that.intensity_scale.invert(d.yPixel);
 
-            d3.select("svg").select("#"+def).attr("d", that.path(data));
+            that.updatePath(data, def);
 
         }
 
