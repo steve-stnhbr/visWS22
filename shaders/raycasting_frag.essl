@@ -9,15 +9,15 @@ varying vec3 vPosition;
 varying vec2 texCoord;
 
 //values for interactive transferfunction
-uniform int sizeOpacityArr;
-uniform int sizeRedArr;
-uniform int sizeGreenArr;
-uniform int sizeBlueArr;
-const int CONTROLPOINTS = 6;
-uniform vec2 redPoints[CONTROLPOINTS];
-uniform vec2 bluePoints[CONTROLPOINTS];
-uniform vec2 greenPoints[CONTROLPOINTS];
-uniform vec2 opacities[CONTROLPOINTS];
+uniform int opacityLen;
+uniform int redLen;
+uniform int greenLen;
+uniform int blueLen;
+const int CONTROLPOINTS = 4;
+uniform vec2 red[CONTROLPOINTS];
+uniform vec2 blue[CONTROLPOINTS];
+uniform vec2 green[CONTROLPOINTS];
+uniform vec2 opacity[CONTROLPOINTS];
 //------------
 
 vec3 gradient(vec3 uvw){
@@ -125,10 +125,10 @@ void main(){
         if(dot(insideRay, insideRay) > rayLenSquared) break;
 
         //---alpha compositing, Front-to-Back with early ray termination
-        float r = applyTransferFunction(voxelCurr, redPoints, sizeRedArr);
-	float g = applyTransferFunction(voxelCurr, greenPoints, sizeGreenArr);
-	float b = applyTransferFunction(voxelCurr, bluePoints, sizeBlueArr);
-	float a = applyTransferFunction(voxelCurr, opacities, sizeOpacityArr);
+        float r = applyTransferFunction(voxelCurr, red, redLen);
+	float g = applyTransferFunction(voxelCurr, green, greenLen);
+	float b = applyTransferFunction(voxelCurr, blue, blueLen);
+	float a = applyTransferFunction(voxelCurr, opacity, opacityLen);
         colCurr = vec3(r,g,b);
         alphaCurr = a;
 

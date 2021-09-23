@@ -1,4 +1,4 @@
-uniform vec3 color[2];
+uniform vec3 color[6];
 uniform int colorIdx;
 
 void main(){

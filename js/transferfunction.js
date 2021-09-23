@@ -86,12 +86,12 @@ class TransferFunction{
                 return d.yPixel;
             });
 
-        let x1 = 0.0, x2 = 0.5, x3 = 1.0;
+        let x1 = 0.0, x2 = 0.33, x3 = 0.66, x4 = 1.0;
         let y1 = 1.0, y2 = 0.9, y3 = 0.8, y4 = 0.7;
-        this.initControlPoints([[x1, y1], [x2, y1], [x3, y1]], "#ddd", "opacityLine");
-        this.initControlPoints([[x1, y2], [x2, y2], [x3, y2]], "#8B0000", "redLine");
-        this.initControlPoints([[x1, y3], [x2, y3], [x3, y3]], "#35baf6", "blueLine");
-        this.initControlPoints([[x1, y4], [x2, y4], [x3, y4]], "#006400", "greenLine");
+        this.initControlPoints([[x1, y1], [x2, y1], [x3, y1], [x4, y1]], "#ddd", "opacityLine");
+        this.initControlPoints([[x1, y2], [x2, y2], [x3, y2], [x4, y2]], "#8B0000", "redLine");
+        this.initControlPoints([[x1, y3], [x2, y3], [x3, y3], [x4, y3]], "#35baf6", "blueLine");
+        this.initControlPoints([[x1, y4], [x2, y4], [x3, y4], [x4, y4]], "#006400", "greenLine");
 
     }
 
