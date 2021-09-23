@@ -96,7 +96,6 @@ function paint(){
 
     volume.setControlPoints(opacities, reds, greens, blues);
 
-
     renderer.render(scene, camera);
 }
 

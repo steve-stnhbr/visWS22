@@ -178,6 +178,8 @@ class TransferFunction{
                 that.updatePath(data, def);
                 that.appendControlPoints(data, color, def);
                 that.lines[def] = data;
+
+                requestAnimationFrame(paint);
             }
         }
     }
@@ -226,6 +228,8 @@ class TransferFunction{
                 d3.select(this).remove();
                 that.updatePath(data, def);
                 that.lines[def] = data;
+
+                requestAnimationFrame(paint);
             }
         }
 
@@ -252,6 +256,7 @@ class TransferFunction{
 
         function dragended() {
             d3.select(this).attr("stroke", null);
+            requestAnimationFrame(paint);
         }
 
         //make sure the control points stay in the axis coordinate space

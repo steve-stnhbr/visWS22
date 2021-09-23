@@ -9,6 +9,8 @@ class RayCastingShader extends Shader {
         volumeTexture.unpackAlignment = 1;
         volumeTexture.needsUpdate = true;
 
+        this.maxControlPoints = 4; //must be the same as const int CONTROLPOINTS in shader
+
         this.setUniform("volume", volumeTexture);
         this.setUniform("frontCube", frontFBO.renderTarget.texture);
         this.setUniform("backCube", backFBO.renderTarget.texture);
@@ -30,9 +32,25 @@ class RayCastingShader extends Shader {
 
     setControlPointsChannel(arr, color){
         let arrThree = [];
-        arr.forEach(function(d){
-            arrThree.push(new THREE.Vector2(d.xDensity, d.yIntensity));
-        });
+
+        let diff = this.maxControlPoints - arr.length;
+
+        if (diff > 0){
+            for (let i = 0; i < diff; i++) {
+                let x = arr[i].xDensity;
+                let y = arr[i].yIntensity;
+                arrThree.push(new THREE.Vector2(x, y));
+            }
+            for(let j = diff; j < this.maxControlPoints; j++){
+                arrThree.push(new THREE.Vector2(0, 0));
+            }
+        }
+        else{
+            arr.forEach(function(d){
+                arrThree.push(new THREE.Vector2(d.xDensity, d.yIntensity));
+            });
+        }
+
         console.log(arrThree);
         this.setUniform(color, arrThree, "v2v");
         this.setUniform(color+"Len", arr.length);
