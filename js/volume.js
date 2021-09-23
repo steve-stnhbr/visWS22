@@ -34,4 +34,12 @@ class Volume {
     setIso(iso){
         this.shader.setIso(iso);
     }
+
+    setControlPoints(arrO, arrR, arrG, arrB){
+        this.shader.setControlPoints(arrO, arrR, arrG, arrB);
+    }
+
+
+
+
 }

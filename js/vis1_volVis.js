@@ -89,6 +89,14 @@ function paint(){
     frontFBO.renderToTexture(renderer, camera);
     backFBO.renderToTexture(renderer, camera);
 
+    let opacities = tf.getControlPoints("opacityLine");
+    let reds = tf.getControlPoints("redLine");
+    let greens = tf.getControlPoints("greenLine");
+    let blues = tf.getControlPoints("blueLine");
+
+    volume.setControlPoints(opacities, reds, greens, blues);
+
+
     renderer.render(scene, camera);
 }
 

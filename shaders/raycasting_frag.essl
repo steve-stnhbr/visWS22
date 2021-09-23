@@ -8,6 +8,18 @@ uniform float iso;
 varying vec3 vPosition;
 varying vec2 texCoord;
 
+//values for interactive transferfunction
+uniform int sizeOpacityArr;
+uniform int sizeRedArr;
+uniform int sizeGreenArr;
+uniform int sizeBlueArr;
+const int CONTROLPOINTS = 6;
+uniform vec2 redPoints[CONTROLPOINTS];
+uniform vec2 bluePoints[CONTROLPOINTS];
+uniform vec2 greenPoints[CONTROLPOINTS];
+uniform vec2 opacities[CONTROLPOINTS];
+//------------
+
 vec3 gradient(vec3 uvw){
     vec3 s1, s2;
 
@@ -46,31 +58,24 @@ vec3 hsv2rgb(float h, float s, float v)
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
-//fixed transfer function for now
-vec4 TFfixed(float density)
-{
-    vec4 res; //RGB + opacity
+//calculate the channel color/opacity
+float applyTransferFunction(float density, vec2 points[CONTROLPOINTS], int size){
 
-    if(density > 0.1 && density < 0.3)
-    {
-        res = vec4(vec3(0.9, 0.7, 0.5), 0.01); //light brown
-    }
+	float value;	
+	
+	for (int i = 0; i < size; i++){
 
-    if(density > 0.3 && density < 0.5)
-    {
-        res = vec4(vec3(0.8, 0.4, 0.1), 0.3); //middle brown
-    }
+		vec2 current = points[i];
+		vec2 next = points[i+1];
 
-    if(density > 0.5 && density < 1.0) //dark brown
-    {
-        res = vec4(vec3(0.5, 0.3, 0.1), 0.6);
-    }
+		if (density > current.x && density < next.x){
+			value = mix(current.y, next.y, density);
+		}
 
-    return res;
-
+	}
+	return value;
 }
 
-//
 
 void main(){
     vec3 uvw = vec3(vPosition.x, vPosition.y ,vPosition.z);
@@ -120,9 +125,12 @@ void main(){
         if(dot(insideRay, insideRay) > rayLenSquared) break;
 
         //---alpha compositing, Front-to-Back with early ray termination
-        vec4 tf = TFfixed(voxelCurr);
-        colCurr = tf.rgb;
-        alphaCurr = tf.a;
+        float r = applyTransferFunction(voxelCurr, redPoints, sizeRedArr);
+	float g = applyTransferFunction(voxelCurr, greenPoints, sizeGreenArr);
+	float b = applyTransferFunction(voxelCurr, bluePoints, sizeBlueArr);
+	float a = applyTransferFunction(voxelCurr, opacities, sizeOpacityArr);
+        colCurr = vec3(r,g,b);
+        alphaCurr = a;
 
         colOut = colCurr * alphaCurr * (1.0-alphaAcc) + colAcc;
         alphaOut = alphaCurr * (1.0-alphaAcc) + alphaAcc;

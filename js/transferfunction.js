@@ -7,9 +7,6 @@ class ControlPoint{
         this.yPixel = yPixel;                    //y value on the screen, needed for drawing
     }
 
-    //calculates the xPixel and yPixel values
-    //calculateCoordinates(){        }
-
 }
 
 class TransferFunction{
@@ -17,6 +14,7 @@ class TransferFunction{
         let that = this;
         this.numControlpoints = numControlPoints;
         this.numBins = numBins;
+        this.lines = {};
 
         this.svg = domElement
             .append("svg")
@@ -131,6 +129,8 @@ class TransferFunction{
         let controlPoints = [];
         points.forEach((p,i) => controlPoints.push(new ControlPoint(i, p[0], p[1],
             that.density_scale(p[0]), that.intensity_scale(p[1]))));
+
+        this.lines[def] = controlPoints;
         this.appendPath(controlPoints, color, def);
         this.appendControlPoints(controlPoints, color, def);
     }
@@ -177,6 +177,7 @@ class TransferFunction{
 
                 that.updatePath(data, def);
                 that.appendControlPoints(data, color, def);
+                that.lines[def] = data;
             }
         }
     }
@@ -224,6 +225,7 @@ class TransferFunction{
                 }
                 d3.select(this).remove();
                 that.updatePath(data, def);
+                that.lines[def] = data;
             }
         }
 
@@ -268,6 +270,12 @@ class TransferFunction{
 
 
         }
+    }
+
+    getControlPoints(type){
+
+        return this.lines[type];
+
     }
 
 
