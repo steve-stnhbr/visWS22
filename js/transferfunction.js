@@ -225,6 +225,8 @@ class TransferFunction{
                         break;
                     }
                 }
+                console.log(data);
+
                 d3.select(this).remove();
                 that.updatePath(data, def);
                 that.lines[def] = data;

@@ -31,26 +31,18 @@ class RayCastingShader extends Shader {
     }
 
     setControlPointsChannel(arr, color){
-        let arrThree = [];
+        let arrThree = [new THREE.Vector2(0, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 0)];
 
-        let diff = this.maxControlPoints - arr.length;
+        console.log("array before");
+        console.log(arr);
 
-        if (diff > 0){
-            for (let i = 0; i < diff; i++) {
-                let x = arr[i].xDensity;
-                let y = arr[i].yIntensity;
-                arrThree.push(new THREE.Vector2(x, y));
-            }
-            for(let j = diff; j < this.maxControlPoints; j++){
-                arrThree.push(new THREE.Vector2(0, 0));
-            }
-        }
-        else{
-            arr.forEach(function(d){
-                arrThree.push(new THREE.Vector2(d.xDensity, d.yIntensity));
-            });
+        for (let i = 0; i < arr.length; i++){
+            let x = arr[i].xDensity;
+            let y = arr[i].yIntensity;
+            arrThree[i] = new THREE.Vector2(x, y);
         }
 
+        console.log("array after");
         console.log(arrThree);
         this.setUniform(color, arrThree, "v2v");
         this.setUniform(color+"Len", arr.length);
