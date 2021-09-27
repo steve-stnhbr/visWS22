@@ -13,28 +13,6 @@ body {
     border: 0px solid black;
 }
 
-.instructions {
-    color: red;
-}
-
-#play-pause {
-    display: none;
-}
-
-label {
-    cursor: pointer;
-}
-
-#play-pause:checked + #play-pause-label::after {
-    content: '❙❙';
-    font-size: 3.5rem;
-}
-
-#play-pause-label::after {
-    content: '►';
-    font-size: 4rem;
-}
-
 #viewContainer{
     flex: 2;
 }

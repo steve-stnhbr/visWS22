@@ -1,3 +1,18 @@
+/**
+ * Vis 1 Task 1 Framework
+ * Copyright (C) TU Wien
+ *   Institute of Visual Computing and Human-Centered Technology
+ *   Research Unit of Computer Graphics
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are not permitted.
+ *
+ * Shader parent class. Loads .essl files from the folder shaders. Provides methods to set uniforms.
+ * The function load() has to be explicitly called from an async function!
+ *
+ * @author Manuela Waldner
+ */
 class Shader {
     constructor(vertexProgram, fragmentProgram) {
         this.vertexProgram = vertexProgram;

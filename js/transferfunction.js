@@ -1,3 +1,19 @@
+/**
+ * Vis 1 Task 1 Framework
+ * Copyright (C) TU Wien
+ *   Institute of Visual Computing and Human-Centered Technology
+ *   Research Unit of Computer Graphics
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are not permitted.
+ */
+
+/**
+ * Describes all properties of a control point in the transfer function editor.
+ *
+ * @author Diana Schalko
+ */
 class ControlPoint{
     constructor(id, x_density, y_intensity, xPixel, yPixel) {
         this.id = id;
@@ -5,17 +21,22 @@ class ControlPoint{
         this.yIntensity = y_intensity;      //value in the range [0,1], depicted on the y axis
         this.xPixel = xPixel;                    //x value on the screen, needed for drawing
         this.yPixel = yPixel;                    //y value on the screen, needed for drawing
-        this.color = "#ffcccc";             // color of the control point (white by default)
+        this.color = "#ffffff";             // color of the control point (white by default)
     }
 
 }
 
+/**
+ * Transfer function editor, including color picker and density histogram.
+ *
+ * @author Diana Schalko
+ * @author Manuela Waldner
+ */
 class TransferFunction{
-    constructor(width, height, domElement, numControlPoints, numBins) {
+    constructor(width, height, domElement, numBins) {
         let that = this;
-        this.numControlpoints = numControlPoints;
         this.numBins = numBins;
-        this.lines = {};
+        this.line;
         this.controlPointCounter = 0;
 
         this.svg = domElement
@@ -25,8 +46,6 @@ class TransferFunction{
 
         this.width = this.svg.node().getBoundingClientRect().width;
         this.height = this.svg.node().getBoundingClientRect().height;
-
-        console.log(this.width);
 
         this.margin = {top: this.height / 5, right: 50, bottom: this.height / 4, left: 50};
 
@@ -91,15 +110,10 @@ class TransferFunction{
             });
 
         let x1 = 0.0, x2 = 0.33, x3 = 0.66, x4 = 1.0;
-        let y1 = 0.01, y2 = 0.9, y3 = 0.8, y4 = 0.7;
+        let y1 = 0.01;
         this.initControlPoints([[x1, y1], [x2, y1], [x3, y1], [x4, y1]], "#ddd", "opacityLine");
-        //this.initControlPoints([[x1, y2], [x2, y2], [x3, y2], [x4, y2]], "#8B0000", "redLine");
-        //this.initControlPoints([[x1, y3], [x2, y3], [x3, y3], [x4, y3]], "#35baf6", "blueLine");
-        //this.initControlPoints([[x1, y4], [x2, y4], [x3, y4], [x4, y4]], "#006400", "greenLine");
-
         this.initColorPicker();
         this.selectedControlPoint = null;
-
     }
 
     setHistogramData(data, exp){
@@ -135,8 +149,8 @@ class TransferFunction{
         let that = this;
         let maxRadius = Math.min(this.width - this.margin.left - this.margin.right, this.margin.top) / 2;
 
-        const numRings = 4;
-        const numSegments = 20;
+        const numRings = 10;
+        const numSegments = 30;
 
         let radius = function(r){ return r * (maxRadius / numRings) };
         let angle = function(a){ return a * (2 * Math.PI / numSegments) };
@@ -148,13 +162,19 @@ class TransferFunction{
         for(let r = 0; r < numRings; r++){
             for(let a = 0; a < numSegments; a++){
 
-                let hsv = d3.hsv(angle(a) * 180 / Math.PI, (r + 1) / (numRings + 1), 1);
+                let hsv = d3.hsv(angle(a) * 180 / Math.PI, r / numRings, 1);
 
                 let arc = d3.arc()
                     .innerRadius(radius(r))
-                    .outerRadius(radius(r+1))
-                    .startAngle(angle(a))
-                    .endAngle(angle(a+1));
+                    .outerRadius(radius(r+1));
+
+                if(r === 0){
+                    arc.startAngle(0).endAngle(2 * Math.PI);
+                }
+                else{
+                    arc.startAngle(angle(a)).endAngle(angle(a+1));
+                }
+
 
                 picker.append("path")
                     .attr("id", "_" + hsv.formatHex().substring(1))
@@ -164,7 +184,7 @@ class TransferFunction{
                     .attr('fill', hsv.formatHex())
                     .on("click", click);
 
-                function click(event){
+                function click(){
                     console.log(this.id);
                     if(that.selectedControlPoint){
                         console.log(that.selectedControlPoint);
@@ -180,36 +200,38 @@ class TransferFunction{
                     requestAnimationFrame(paint);
                 }
 
+                if(r === 0) break;
+
             }
         }
     }
 
     colorSegmentForControlPoint(point){
         console.log(point.color);
-        return d3.select("#_" + point.color.substring(1)); //"__" + hsv.formatHex().substring(1)
+        return d3.select("#_" + point.color.substring(1));
     }
 
-    dotForPoint(point){
-        console.log(point.id);
-        console.log(point);
-        return d3.select("#__" + point.id);
-    }
+    // dotForPoint(point){
+    //     console.log(point.id);
+    //     console.log(point);
+    //     return d3.select("#__" + point.id);
+    // }
 
     setSelectedControlPoint(point, button){
         this.colorSegmentForControlPoint(point).raise().attr("stroke", "black");
         this.selectedControlPoint = point;
         d3.select(button).raise()
-            .attr("stroke", "black")
+            .attr("stroke", "red")
             .attr("fill", () => point.color);
     }
 
     initControlPoints(points, color, def){
         let that = this;
         let controlPoints = [];
-        points.forEach((p,i) => controlPoints.push(new ControlPoint(this.controlPointCounter++, p[0], p[1],
+        points.forEach((p) => controlPoints.push(new ControlPoint(this.controlPointCounter++, p[0], p[1],
             that.density_scale(p[0]), that.intensity_scale(p[1]))));
 
-        this.lines[def] = controlPoints;
+        this.line = controlPoints;
         this.appendPath(controlPoints, color, def);
         this.appendControlPoints(controlPoints, color, def);
     }
@@ -256,7 +278,7 @@ class TransferFunction{
 
                 that.updatePath(data, def);
                 that.appendControlPoints(data, color, def);
-                that.lines[def] = data;
+                that.line = data;
 
                 requestAnimationFrame(paint);
             }
@@ -294,7 +316,7 @@ class TransferFunction{
         function click(event, d){
             // remove control point
             if(event.altKey){
-                console.log("remove me!");
+                //console.log("remove me!");
                 let p = that.getDensityIntensity(event);
                 let eps = 0.02;
                 for(let i = 0; i < data.length; i++){
@@ -309,7 +331,7 @@ class TransferFunction{
 
                 d3.select(this).remove();
                 that.updatePath(data, def);
-                that.lines[def] = data;
+                that.line = data;
 
                 requestAnimationFrame(paint);
             }
@@ -318,9 +340,10 @@ class TransferFunction{
 
         function dragstarted(event, d) {
             if(that.selectedControlPoint){
+                d3.select("#__"+that.selectedControlPoint.id).attr("stroke", "white");
                 that.colorSegmentForControlPoint(that.selectedControlPoint).raise().attr("stroke", "white");
             }
-            d3.select(this).raise().attr("stroke", "black");
+            d3.select(this).raise().attr("stroke", "red");
             that.setSelectedControlPoint(d, this);
         }
 
@@ -342,7 +365,7 @@ class TransferFunction{
         }
 
         function dragended() {
-            d3.select(this).attr("stroke", null);
+            //d3.select(this).attr("stroke", null);
             requestAnimationFrame(paint);
         }
 
@@ -364,9 +387,8 @@ class TransferFunction{
         }
     }
 
-    getControlPoints(type){
-
-        return this.lines[type];
+    getControlPoints(){
+        return this.line;
 
     }
 

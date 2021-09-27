@@ -1,3 +1,20 @@
+/**
+ * Vis 1 Task 1 Framework
+ * Copyright (C) TU Wien
+ *   Institute of Visual Computing and Human-Centered Technology
+ *   Research Unit of Computer Graphics
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are not permitted.
+ *
+ * Shader material used for raycasting. Takes the volume data structure and the front and back face FBO cube as input.
+ * Sets the transfer function control points.
+ *
+ * @author Manuela Waldner
+ * @author Laura Luidolt
+ * @author Diana Schalko
+ */
 class RayCastingShader extends Shader {
     constructor(volume, frontFBO, backFBO){
         super("raycasting_vert", "raycasting_frag"); //pseudoIsosurface_frag (previous isosurfacing)
@@ -14,56 +31,32 @@ class RayCastingShader extends Shader {
         this.setUniform("volume", volumeTexture);
         this.setUniform("frontCube", frontFBO.renderTarget.texture);
         this.setUniform("backCube", backFBO.renderTarget.texture);
-        this.setIso(0.01);
     }
 
-    setIso(iso){
-        this.setUniform("iso", iso);
-    }
 
-    setControlPoints(arrO){
+    setControlPoints(arr){
 
-        this.setControlPointsChannel(arrO, "opacity");
-        this.setControlPointsColors(arrO);
-        //this.setControlPointsChannel(arrR, "red");
-        //this.setControlPointsChannel(arrG, "green");
-        //this.setControlPointsChannel(arrB, "blue");
+        let opacity = [];
+        let color = [];
 
-    }
-
-    setControlPointsChannel(arr, color){
-        let arrThree = [];
         for(let i = 0; i < this.maxControlPoints; i++){
-            arrThree.push(new THREE.Vector2(0,0));
+            opacity.push(new THREE.Vector2(0,0));
+            color.push(new THREE.Vector3(0,0,0));
         }
-
-        //console.log("array before");
-        //console.log(arr);
 
         for (let i = 0; i < arr.length; i++){
             let x = arr[i].xDensity;
             let y = arr[i].yIntensity;
-            arrThree[i] = new THREE.Vector2(x, y);
+            opacity[i] = new THREE.Vector2(x, y);
+            let c = d3.color(arr[i].color);
+            color[i] = new THREE.Vector3(c.r / 255.0, c.g / 255.0, c.b / 255.0);
         }
 
-        //console.log("array after");
-        //console.log(arrThree);
-        this.setUniform(color, arrThree, "v2v");
-        this.setUniform(color+"Len", arr.length);
+        this.setUniform("opacity", opacity, "v2v");
+        this.setUniform("len", arr.length);
+        this.setUniform("colors", color, "v3v");
+
     }
 
-    setControlPointsColors(arr){
-        let arrThree = [];
-        for(let i = 0; i < this.maxControlPoints; i++){
-            arrThree.push(new THREE.Vector3(0,0,0));
-        }
-        for (let i = 0; i < arr.length; i++){
-            let color = d3.color(arr[i].color);
-            arrThree[i] = new THREE.Vector3(color.r / 255.0, color.g / 255.0, color.b / 255.0);
-        }
-
-        this.setUniform("colors", arrThree, "v3v");
-
-    }
 }
 

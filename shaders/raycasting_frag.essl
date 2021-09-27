@@ -9,69 +9,59 @@ varying vec3 vPosition;
 varying vec2 texCoord;
 
 //values for interactive transferfunction
-uniform int opacityLen;
+uniform int len;
 const int CONTROLPOINTS = 10;
 uniform vec2 opacity[CONTROLPOINTS];
 uniform vec3 colors[CONTROLPOINTS]; 
 
-const int STEPS = 512; 
+const int STEPS = 1024; 
 
-//calculate the channel color/opacity
-float applyTransferFunction(float density, vec2 points[CONTROLPOINTS], int size){
 
-	float value = 0.0;	
-	
-	for (int i = 0; i < size-1; i++){
-
-		vec2 current = points[i];
-		vec2 next = points[i+1];
-
-		if (density >= current.x && density < next.x){
-            //float ratio = (density - current.x) / (next.x - current.x); 
-			value = mix(current.y, next.y, density);
-            break; 
-		}
-
-	}
-	return value;
-}
-
-// TODO: interpolate!
-vec3 getColor(int i){
+vec3 getColor(float ratio, int i){
     vec3 c = vec3(1.0);
 
     if(i >= 0){
-        c = colors[i]; 
+        c = mix(colors[i], colors[i+1], ratio); 
     }
 
     return c; 
 }
 
-float getOpacity(float density, int i){
+float getOpacity(float ratio, int i){
     float value = 0.0;	
 
     if(i >= 0){
         vec2 current = opacity[i];
 	    vec2 next = opacity[i+1];
-        value = mix(current.y, next.y, density);
+        value = mix(current.y, next.y, ratio);
     }
 
     return value; 
 }
 
+float getRatio(float density, int i){
+    float ratio = 0.0; 
+
+    if(i >= 0){
+        vec2 current = opacity[i];
+	    vec2 next = opacity[i+1];
+
+        ratio = (density - current.x) / (next.x - current.x); 
+    }
+    
+    return ratio; 
+}
+
 int getControlPointIndex(float density){
     float value = 0.0;	
 	
-	for (int i = 0; i < opacityLen-1; i++){
+	for (int i = 0; i < len-1; i++){
 
 		vec2 current = opacity[i];
 		vec2 next = opacity[i+1];
 
 		if (density >= current.x && density < next.x){
             return i; 
-            //float ratio = (density - current.x) / (next.x - current.x); 
-			//value = mix(current.y, next.y, density);
-            //break; 
 		}
 
 	}
@@ -95,8 +85,6 @@ void main(){
     vec3 dir = normalize(ray);
     float stepSize = max(rayLenSquared / float(STEPS), 0.005);
     vec3 step = dir * vec3(stepSize);
-    //float endDist = dot(end, end);
-    //float startDist = dot(start, start);
 
     // render bounding cube
     //gl_FragColor = vec4(vec3(rayLenSquared * 0.5), 1.0);
@@ -130,10 +118,9 @@ void main(){
 
         //---alpha compositing, Front-to-Back with early ray termination
         int cpi = getControlPointIndex(voxelCurr); 
-        float a = getOpacity(voxelCurr, cpi); 
-        colCurr = getColor(cpi); 
-	    //float a = applyTransferFunction(voxelCurr, opacity, opacityLen);
-        //colCurr = vec3(r,g,b);
+        float ratio = getRatio(voxelCurr, cpi); 
+        float a = getOpacity(ratio, cpi); 
+        colCurr = getColor(ratio, cpi); 
         //colCurr = vec3(1.0, 0.5, 0.0); 
         alphaCurr = a;
 

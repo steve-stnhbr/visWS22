@@ -1,4 +1,19 @@
-// https://github.com/mrdoob/three.js/blob/master/examples/webgl2_materials_texture3d.html
+/**
+ * Vis 1 Task 1 Framework
+ * Copyright (C) TU Wien
+ *   Institute of Visual Computing and Human-Centered Technology
+ *   Research Unit of Computer Graphics
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are not permitted.
+ *
+ * Volume class handling simple volume.dat files. Loads the volumes as float arrays.
+ * Stores the voxels as 3D texture in a shader material (rayCastingShader.js).
+ *
+ * @author Manuela Waldner
+ * @author Diana Schalko
+ */
 class Volume {
     constructor(uint16Array) {
         this.width = uint16Array[0];
@@ -6,11 +21,9 @@ class Volume {
         this.depth = uint16Array[2];
         this.slice = this.width * this.height;
         this.size = this.slice * this.depth;
-        //this.voxels = uint16Array.slice(3);
         this.max = Math.max(this.width, this.height, this.depth);
         this.scale = [this.width, this.height, this.depth];
 
-        // const float value = float(vecData[i]) / 4095.0f;
         let floatArray = [];
         uint16Array.slice(3).forEach(function(voxel){
             floatArray.push(voxel / 4095.0);
@@ -31,15 +44,7 @@ class Volume {
         return new THREE.Mesh( this.geometry, this.material );
     }
 
-    setIso(iso){
-        this.shader.setIso(iso);
+    setControlPoints(arr){
+        this.shader.setControlPoints(arr);
     }
-
-    setControlPoints(arrO){
-        this.shader.setControlPoints(arrO);
-    }
-
-
-
-
 }
