@@ -21,17 +21,16 @@ class RayCastingShader extends Shader {
         this.setUniform("iso", iso);
     }
 
-    setControlPoints(arrO, arrR, arrG, arrB){
+    setControlPoints(arrO){
 
         this.setControlPointsChannel(arrO, "opacity");
-        this.setControlPointsChannel(arrR, "red");
-        this.setControlPointsChannel(arrG, "green");
-        this.setControlPointsChannel(arrB, "blue");
+        //this.setControlPointsChannel(arrR, "red");
+        //this.setControlPointsChannel(arrG, "green");
+        //this.setControlPointsChannel(arrB, "blue");
 
     }
 
     setControlPointsChannel(arr, color){
-        //let arrThree = [new THREE.Vector2(0, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 0), new THREE.Vector2(0, 0)];
         let arrThree = [];
         for(let i = 0; i < this.maxControlPoints; i++){
             arrThree.push(new THREE.Vector2(0,0));

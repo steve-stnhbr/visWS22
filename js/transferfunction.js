@@ -5,7 +5,7 @@ class ControlPoint{
         this.yIntensity = y_intensity;      //value in the range [0,1], depicted on the y axis
         this.xPixel = xPixel;                    //x value on the screen, needed for drawing
         this.yPixel = yPixel;                    //y value on the screen, needed for drawing
-        this.color = "#ff3370";             // color of the control point (white by default)
+        this.color = "#ffcccc";             // color of the control point (white by default)
     }
 
 }
@@ -16,6 +16,7 @@ class TransferFunction{
         this.numControlpoints = numControlPoints;
         this.numBins = numBins;
         this.lines = {};
+        this.controlPointCounter = 0;
 
         this.svg = domElement
             .append("svg")
@@ -156,7 +157,7 @@ class TransferFunction{
                     .endAngle(angle(a+1));
 
                 picker.append("path")
-                    .attr("id", hsv.formatHex().substring(1))
+                    .attr("id", "_" + hsv.formatHex().substring(1))
                     .attr("class", "arc")
                     .attr("d", arc)
                     .attr('stroke', 'white')
@@ -170,12 +171,10 @@ class TransferFunction{
 
 
                         d3.select(this).raise().attr("stroke", "black");
-                        d3.select(that.selectedControlPoint.color).attr("stroke", "white");
-                        that.selectedControlPoint.color = "#"+this.id;
-                        d3.select("#__"+that.selectedControlPoint.id).attr("fill", () => { return "#"+this.id});
-
-                        //console.log(that.dotForPoint(that.selectedControlPoint));
-                        //that.setSelectedControlPoint(that.selectedControlPoint, that.dotForPoint(that.selectedControlPoint));
+                        that.colorSegmentForControlPoint(that.selectedControlPoint).raise().attr("stroke", "white");
+                        let color = "#" + this.id.substring(1);
+                        that.selectedControlPoint.color = color;
+                        d3.select("#__"+that.selectedControlPoint.id).attr("fill", color);
                     }
 
                     requestAnimationFrame(paint);
@@ -183,32 +182,11 @@ class TransferFunction{
 
             }
         }
-
-        // const arc = d3.arc()
-        //     .innerRadius(radius / 2)
-        //     .outerRadius(radius)
-        //     .startAngle(0)
-        //     .endAngle(Math.PI / 2);
-        //
-        // this.svg.append("g")
-        //     .attr("transform", "translate(" + this.width / 2 + ", " + this.margin.top / 2 + ")")
-        //     .append("path")
-        //     .attr("class", "arc")
-        //     .attr("d", arc)
-        //     .attr('stroke', 'white')
-        //     .attr('fill', '#f00');
-
-        // let picker = this.svg.append("g")
-        //     .append("circle")
-        //     .attr('cx', this.width / 2)
-        //     .attr('cy', this.margin.top / 2)
-        //     .attr('r', radius)
-        //     .attr('stroke', 'white')
-        //     .attr('fill', '#69a3b2');
     }
 
     colorSegmentForControlPoint(point){
-        return d3.select(point.color);
+        console.log(point.color);
+        return d3.select("#_" + point.color.substring(1)); //"__" + hsv.formatHex().substring(1)
     }
 
     dotForPoint(point){
@@ -228,7 +206,7 @@ class TransferFunction{
     initControlPoints(points, color, def){
         let that = this;
         let controlPoints = [];
-        points.forEach((p,i) => controlPoints.push(new ControlPoint(i, p[0], p[1],
+        points.forEach((p,i) => controlPoints.push(new ControlPoint(this.controlPointCounter++, p[0], p[1],
             that.density_scale(p[0]), that.intensity_scale(p[1]))));
 
         this.lines[def] = controlPoints;
@@ -272,7 +250,7 @@ class TransferFunction{
                         break;
                     }
                 }
-                let controlPoint = new ControlPoint(index, p.x, p.y,
+                let controlPoint = new ControlPoint(that.controlPointCounter++, p.x, p.y,
                     that.density_scale(p.x), that.intensity_scale(p.y));
                 data.splice(index, 0, controlPoint);
 
@@ -318,7 +296,7 @@ class TransferFunction{
             if(event.altKey){
                 console.log("remove me!");
                 let p = that.getDensityIntensity(event);
-                let eps = 0.01;
+                let eps = 0.02;
                 for(let i = 0; i < data.length; i++){
                     let x = data[i].xDensity;
                     let y = data[i].yIntensity;
@@ -335,14 +313,13 @@ class TransferFunction{
 
                 requestAnimationFrame(paint);
             }
-            //console.log(d.color);
-            //console.log(d3.select(d.color));
-            //that.colorSegmentForControlPoint(d).raise().attr("stroke", "black");
-            //that.selectedControlPoint = d;
             that.setSelectedControlPoint(d, this);
         }
 
         function dragstarted(event, d) {
+            if(that.selectedControlPoint){
+                that.colorSegmentForControlPoint(that.selectedControlPoint).raise().attr("stroke", "white");
+            }
             d3.select(this).raise().attr("stroke", "black");
             that.setSelectedControlPoint(d, this);
         }
