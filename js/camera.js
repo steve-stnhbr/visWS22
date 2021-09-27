@@ -1,3 +1,18 @@
+/**
+ * Vis 1 Task 1 Framework
+ * Copyright (C) TU Wien
+ *   Institute of Visual Computing and Human-Centered Technology
+ *   Research Unit of Computer Graphics
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are not permitted.
+ * 
+ * Camera that orbits around a centered object. Only uses mouse input!
+ *
+ * @author Manuela Waldner
+ */
+
 class OrbitCamera {
     constructor(camera, targetPos, radius, domElement){
         this.camera = camera;
