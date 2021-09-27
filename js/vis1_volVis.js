@@ -98,10 +98,3 @@ function paint(){
 
     renderer.render(scene, camera);
 }
-
-function playPause(){
-    play = !play;
-    orbitCamera.autoRotate = play;
-    console.log("plause: " + play);
-    if(play) requestAnimationFrame(paint);
-}
