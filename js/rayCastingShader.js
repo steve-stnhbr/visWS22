@@ -24,6 +24,7 @@ class RayCastingShader extends Shader {
     setControlPoints(arrO){
 
         this.setControlPointsChannel(arrO, "opacity");
+        this.setControlPointsColors(arrO);
         //this.setControlPointsChannel(arrR, "red");
         //this.setControlPointsChannel(arrG, "green");
         //this.setControlPointsChannel(arrB, "blue");
@@ -49,6 +50,20 @@ class RayCastingShader extends Shader {
         //console.log(arrThree);
         this.setUniform(color, arrThree, "v2v");
         this.setUniform(color+"Len", arr.length);
+    }
+
+    setControlPointsColors(arr){
+        let arrThree = [];
+        for(let i = 0; i < this.maxControlPoints; i++){
+            arrThree.push(new THREE.Vector3(0,0,0));
+        }
+        for (let i = 0; i < arr.length; i++){
+            let color = d3.color(arr[i].color);
+            arrThree[i] = new THREE.Vector3(color.r / 255.0, color.g / 255.0, color.b / 255.0);
+        }
+
+        this.setUniform("colors", arrThree, "v3v");
+
     }
 }
 

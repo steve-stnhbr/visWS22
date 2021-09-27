@@ -12,6 +12,7 @@ varying vec2 texCoord;
 uniform int opacityLen;
 const int CONTROLPOINTS = 10;
 uniform vec2 opacity[CONTROLPOINTS];
+uniform vec3 colors[CONTROLPOINTS]; 
 
 const int STEPS = 512; 
 
@@ -33,6 +34,48 @@ float applyTransferFunction(float density, vec2 points[CONTROLPOINTS], int size)
 
 	}
 	return value;
+}
+
+// TODO: interpolate!
+vec3 getColor(int i){
+    vec3 c = vec3(1.0);
+
+    if(i >= 0){
+        c = colors[i]; 
+    }
+
+    return c; 
+}
+
+float getOpacity(float density, int i){
+    float value = 0.0;	
+
+    if(i >= 0){
+        vec2 current = opacity[i];
+	    vec2 next = opacity[i+1];
+        value = mix(current.y, next.y, density);
+    }
+
+    return value; 
+}
+
+int getControlPointIndex(float density){
+    float value = 0.0;	
+	
+	for (int i = 0; i < opacityLen-1; i++){
+
+		vec2 current = opacity[i];
+		vec2 next = opacity[i+1];
+
+		if (density >= current.x && density < next.x){
+            return i; 
+            //float ratio = (density - current.x) / (next.x - current.x); 
+			//value = mix(current.y, next.y, density);
+            //break; 
+		}
+
+	}
+	return -1;
 }
 
 
@@ -86,9 +129,12 @@ void main(){
         if(dot(insideRay, insideRay) > rayLenSquared) break;
 
         //---alpha compositing, Front-to-Back with early ray termination
-	    float a = applyTransferFunction(voxelCurr, opacity, opacityLen);
+        int cpi = getControlPointIndex(voxelCurr); 
+        float a = getOpacity(voxelCurr, cpi); 
+        colCurr = getColor(cpi); 
+	    //float a = applyTransferFunction(voxelCurr, opacity, opacityLen);
         //colCurr = vec3(r,g,b);
-        colCurr = vec3(1.0, 0.5, 0.0); 
+        //colCurr = vec3(1.0, 0.5, 0.0); 
         alphaCurr = a;
 
         colOut = colCurr * alphaCurr * (1.0-alphaAcc) + colAcc;
@@ -104,7 +150,7 @@ void main(){
         rayPosPrev = rayPosCurr;
 
     }
-    //gl_FragColor = vec4(colAcc, alphaAcc);
-    vec3 testAlpha = vec3(alphaAcc); 
-    gl_FragColor = vec4(testAlpha, alphaAcc); 
+    gl_FragColor = vec4(colAcc, alphaAcc);
+    //vec3 testAlpha = vec3(alphaAcc); 
+    //gl_FragColor = vec4(testAlpha, alphaAcc); 
 }
