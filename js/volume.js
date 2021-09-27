@@ -9,7 +9,6 @@
  * modification, are not permitted.
  *
  * Volume class handling simple volume.dat files. Loads the volumes as float arrays.
- * Stores the voxels as 3D texture in a shader material (rayCastingShader.js).
  *
  * @author Manuela Waldner
  * @author Diana Schalko
@@ -30,21 +29,7 @@ class Volume {
         });
         this.voxels = Float32Array.from(floatArray);
 
-        console.log(this.voxels.length + " voxels loaded - max: " + this.max);
-
-        this.geometry = new THREE.PlaneGeometry( 2, 2 );
-        this.material = null;
-        this.shader = null;
-    }
-
-    async getMesh(frontFBO, backFBO){
-        this.shader = new RayCastingShader(this, frontFBO, backFBO);
-        await this.shader.load();
-        this.material = this.shader.material;
-        return new THREE.Mesh( this.geometry, this.material );
-    }
-
-    setControlPoints(arr){
-        this.shader.setControlPoints(arr);
+        console.log(this.voxels.length + " voxels loaded - ["
+            + this.width + ", " + this.height + ", " + this.depth + "], max: " + this.max);
     }
 }

@@ -17,10 +17,8 @@
 let renderer, camera, scene, controls, orbitCamera;
 let canvasWidth, canvasHeight = 0;
 let container = null;
-let frontFBO, backFBO = null;
 let volume = null;
 let fileInput = null;
-let tf = null;
 let testShader = null;
 
 function init() {
@@ -29,10 +27,10 @@ function init() {
     canvasWidth = window.innerWidth * 0.7;
     canvasHeight = window.innerHeight * 0.7;
 
-    // transfer function editor
-    let transferFunctionElement = d3.select("#tfContainer");
-    tf = new TransferFunction(window.innerWidth * 0.3, window.innerHeight * 0.7,
-        transferFunctionElement, 40);
+    /*
+     * TODOs:
+     * - set up transfer function editor
+     */
 
     // WebGL renderer
     renderer = new THREE.WebGLRenderer();
@@ -43,7 +41,7 @@ function init() {
     fileInput = document.getElementById("upload");
     fileInput.addEventListener('change', readFile);
 
-    // dummy example for students
+    // dummy shader gets a color as input
     testShader = new TestShader([255.0, 255.0, 0.0]);
 }
 
@@ -61,33 +59,26 @@ function readFile(){
 }
 
 async function resetVis(){
-    // create new scene and camera
+    // create new empty scene and perspective camera
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, canvasWidth / canvasHeight, 0.1, 1000 );
 
-
-    /* Keep this block for dummy scene given to students */
-    const testCube = new THREE.BoxGeometry(100, 100, 100);
+    // dummy scene: we render a box and attach our color test shader as material
+    const testCube = new THREE.BoxGeometry(volume.width, volume.height, volume.depth);
     const testMaterial = testShader.material;
     await testShader.load();
     const testMesh = new THREE.Mesh(testCube, testMaterial);
-    //scene.add(testMesh);
-    /* end dummy scene */
+    scene.add(testMesh);
 
-    // FBO front and back meshes
-    let cube = new BoundingCube();
-    let frontMesh = await cube.getFrontMesh(volume.scale);
-    let backMesh = await cube.getBackMesh(volume.scale);
-    frontFBO = new FBO(canvasWidth, canvasHeight, frontMesh, camera, renderer);
-    backFBO = new FBO(canvasWidth, canvasHeight, backMesh, camera, renderer);
+    /*
+     * TODOs:
+     * - set up FBOs to render front and back sides of a cube (you can use fbo.js)
+     * - store volume from volume.js in 3D texture
+     * - set up alpha compositing shader
+     * - initialize histogram for transfer function editor
+     */
 
-    // volume mesh
-    const volumeMesh = await volume.getMesh(frontFBO, backFBO);
-    scene.add(volumeMesh);
-
-    // voxel densities to be shown in histogram
-    tf.setHistogramData(volume.voxels, 0.25);
-
+    // our camera orbits around an object centered at (0,0,0)
     orbitCamera = new OrbitCamera(camera, new THREE.Vector3(0,0,0), 2*volume.max, renderer.domElement);
 
     // init paint loop
@@ -99,10 +90,12 @@ function paint(){
 
     orbitCamera.update();
 
-    frontFBO.renderToTexture(renderer, camera);
-    backFBO.renderToTexture(renderer, camera);
-
-    volume.setControlPoints(tf.getControlPoints());
+    /*
+     * TODOs:
+     * - render cube sides to texture
+     * - set transfer function editor control points as shader uniforms
+     * - render the volume
+     */
 
     renderer.render(scene, camera);
 }
