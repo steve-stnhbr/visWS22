@@ -5,6 +5,7 @@ class ControlPoint{
         this.yIntensity = y_intensity;      //value in the range [0,1], depicted on the y axis
         this.xPixel = xPixel;                    //x value on the screen, needed for drawing
         this.yPixel = yPixel;                    //y value on the screen, needed for drawing
+        this.color = "#ff3370";             // color of the control point (white by default)
     }
 
 }
@@ -24,7 +25,9 @@ class TransferFunction{
         this.width = this.svg.node().getBoundingClientRect().width;
         this.height = this.svg.node().getBoundingClientRect().height;
 
-        this.margin = {top: 30, right: 50, bottom: this.height / 4, left: 50};
+        console.log(this.width);
+
+        this.margin = {top: this.height / 5, right: 50, bottom: this.height / 4, left: 50};
 
         this.density_scale = d3.scaleLinear()
             .domain([0,1])
@@ -56,8 +59,8 @@ class TransferFunction{
         // x axis label
         density_axis.append("text")
             .style("text-anchor", "middle")
-            .attr("x", this.width/2 - this.margin.right)
-            .attr("y", this.margin.top)
+            .attr("x", this.width - this.margin.right - 60)
+            .attr("y", 30)
             .attr("fill", "white")
             .text("density");
 
@@ -70,7 +73,7 @@ class TransferFunction{
         intensity_axis.append("text")
             .style("text-anchor", "middle")
             .attr("y", -30)
-            .attr("x", -(this.height - this.margin.bottom)/2 - this.margin.top)
+            .attr("x", -this.margin.top - 10)
             .attr("transform", "rotate(-90)")
             .attr("fill", "white")
             .text("intensity");
@@ -87,11 +90,14 @@ class TransferFunction{
             });
 
         let x1 = 0.0, x2 = 0.33, x3 = 0.66, x4 = 1.0;
-        let y1 = 1.0, y2 = 0.9, y3 = 0.8, y4 = 0.7;
+        let y1 = 0.01, y2 = 0.9, y3 = 0.8, y4 = 0.7;
         this.initControlPoints([[x1, y1], [x2, y1], [x3, y1], [x4, y1]], "#ddd", "opacityLine");
-        this.initControlPoints([[x1, y2], [x2, y2], [x3, y2], [x4, y2]], "#8B0000", "redLine");
-        this.initControlPoints([[x1, y3], [x2, y3], [x3, y3], [x4, y3]], "#35baf6", "blueLine");
-        this.initControlPoints([[x1, y4], [x2, y4], [x3, y4], [x4, y4]], "#006400", "greenLine");
+        //this.initControlPoints([[x1, y2], [x2, y2], [x3, y2], [x4, y2]], "#8B0000", "redLine");
+        //this.initControlPoints([[x1, y3], [x2, y3], [x3, y3], [x4, y3]], "#35baf6", "blueLine");
+        //this.initControlPoints([[x1, y4], [x2, y4], [x3, y4], [x4, y4]], "#006400", "greenLine");
+
+        this.initColorPicker();
+        this.selectedControlPoint = null;
 
     }
 
@@ -121,7 +127,102 @@ class TransferFunction{
             .attr("width", d => Math.max(0, that.density_scale(d.x1) - that.density_scale(d.x0) - 1))
             .attr("y", () => y(max))
             .attr("height", d => len(d))
-            .attr("fill", "#444"); //d => color(d.length)
+            .attr("fill", "#444");
+    }
+
+    initColorPicker(){
+        let that = this;
+        let maxRadius = Math.min(this.width - this.margin.left - this.margin.right, this.margin.top) / 2;
+
+        const numRings = 4;
+        const numSegments = 20;
+
+        let radius = function(r){ return r * (maxRadius / numRings) };
+        let angle = function(a){ return a * (2 * Math.PI / numSegments) };
+
+        let picker = this.svg.append("g")
+            .attr("transform", "translate(" + (this.margin.left + this.width / 2 - maxRadius)
+                + ", " + this.margin.top / 2 + ")");
+
+        for(let r = 0; r < numRings; r++){
+            for(let a = 0; a < numSegments; a++){
+
+                let hsv = d3.hsv(angle(a) * 180 / Math.PI, (r + 1) / (numRings + 1), 1);
+
+                let arc = d3.arc()
+                    .innerRadius(radius(r))
+                    .outerRadius(radius(r+1))
+                    .startAngle(angle(a))
+                    .endAngle(angle(a+1));
+
+                picker.append("path")
+                    .attr("id", hsv.formatHex().substring(1))
+                    .attr("class", "arc")
+                    .attr("d", arc)
+                    .attr('stroke', 'white')
+                    .attr('fill', hsv.formatHex())
+                    .on("click", click);
+
+                function click(event){
+                    console.log(this.id);
+                    if(that.selectedControlPoint){
+                        console.log(that.selectedControlPoint);
+
+
+                        d3.select(this).raise().attr("stroke", "black");
+                        d3.select(that.selectedControlPoint.color).attr("stroke", "white");
+                        that.selectedControlPoint.color = "#"+this.id;
+                        d3.select("#__"+that.selectedControlPoint.id).attr("fill", () => { return "#"+this.id});
+
+                        //console.log(that.dotForPoint(that.selectedControlPoint));
+                        //that.setSelectedControlPoint(that.selectedControlPoint, that.dotForPoint(that.selectedControlPoint));
+                    }
+
+                    requestAnimationFrame(paint);
+                }
+
+            }
+        }
+
+        // const arc = d3.arc()
+        //     .innerRadius(radius / 2)
+        //     .outerRadius(radius)
+        //     .startAngle(0)
+        //     .endAngle(Math.PI / 2);
+        //
+        // this.svg.append("g")
+        //     .attr("transform", "translate(" + this.width / 2 + ", " + this.margin.top / 2 + ")")
+        //     .append("path")
+        //     .attr("class", "arc")
+        //     .attr("d", arc)
+        //     .attr('stroke', 'white')
+        //     .attr('fill', '#f00');
+
+        // let picker = this.svg.append("g")
+        //     .append("circle")
+        //     .attr('cx', this.width / 2)
+        //     .attr('cy', this.margin.top / 2)
+        //     .attr('r', radius)
+        //     .attr('stroke', 'white')
+        //     .attr('fill', '#69a3b2');
+    }
+
+    colorSegmentForControlPoint(point){
+        return d3.select(point.color);
+    }
+
+    dotForPoint(point){
+        console.log(point.id);
+        console.log(point);
+        return d3.select("#__" + point.id);
+    }
+
+    setSelectedControlPoint(point, button){
+        this.colorSegmentForControlPoint(point).raise().attr("stroke", "black");
+        this.selectedControlPoint = point;
+        d3.select(button).raise()
+            .attr("stroke", "black")
+            .attr("fill", () => point.color);
     }
 
     initControlPoints(points, color, def){
@@ -199,10 +300,11 @@ class TransferFunction{
             .enter()
             .append("circle")
             .attr("class", def)
+            .attr("id", d => {return "__" + d.id;})
             .attr("r", 8)
             .attr("cx", function(d) {return d.xPixel;})
             .attr("cy", function(d) {return d.yPixel;})
-            .attr("fill", color)
+            .attr("fill", d => { return d.color; })
             .on("click", click)
             .call(d3.drag()
                 .subject(d3.select(this))
@@ -211,7 +313,7 @@ class TransferFunction{
                 .on("end", dragended)
             );
 
-        function click(event){
+        function click(event, d){
             // remove control point
             if(event.altKey){
                 console.log("remove me!");
@@ -233,10 +335,16 @@ class TransferFunction{
 
                 requestAnimationFrame(paint);
             }
+            //console.log(d.color);
+            //console.log(d3.select(d.color));
+            //that.colorSegmentForControlPoint(d).raise().attr("stroke", "black");
+            //that.selectedControlPoint = d;
+            that.setSelectedControlPoint(d, this);
         }
 
-        function dragstarted() {
+        function dragstarted(event, d) {
             d3.select(this).raise().attr("stroke", "black");
+            that.setSelectedControlPoint(d, this);
         }
 
         function dragged(event, d) {

@@ -92,12 +92,12 @@ void main(){
         if(dot(insideRay, insideRay) > rayLenSquared) break;
 
         //---alpha compositing, Front-to-Back with early ray termination
-        //float r = applyTransferFunction(voxelCurr, red, redLen);
-	    //float g = applyTransferFunction(voxelCurr, green, greenLen);
-	    //float b = applyTransferFunction(voxelCurr, blue, blueLen);
+        float r = applyTransferFunction(voxelCurr, red, redLen);
+	    float g = applyTransferFunction(voxelCurr, green, greenLen);
+	    float b = applyTransferFunction(voxelCurr, blue, blueLen);
 	    float a = applyTransferFunction(voxelCurr, opacity, opacityLen);
-        //colCurr = vec3(r,g,b);
-        colCurr = vec3(1.0, 0.5, 0.0); 
+        colCurr = vec3(r,g,b);
+        //colCurr = vec3(1.0, 0.5, 0.0); 
         alphaCurr = a;
 
         colOut = colCurr * alphaCurr * (1.0-alphaAcc) + colAcc;
@@ -113,7 +113,7 @@ void main(){
         rayPosPrev = rayPosCurr;
 
     }
-    //gl_FragColor = vec4(colAcc, alphaAcc);
-    vec3 testAlpha = vec3(alphaAcc); 
-    gl_FragColor = vec4(testAlpha, alphaAcc); 
+    gl_FragColor = vec4(colAcc, alphaAcc);
+    //vec3 testAlpha = vec3(alphaAcc); 
+    //gl_FragColor = vec4(testAlpha, alphaAcc); 
 }
