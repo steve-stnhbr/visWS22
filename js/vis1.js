@@ -64,7 +64,7 @@ async function resetVis(){
     // create new scene and camera
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, canvasWidth / canvasHeight, 0.1, 1000 );
-    orbitCamera = new OrbitCamera(camera, new THREE.Vector3(0,0,0), 2*volume.max, renderer.domElement);
+
 
     /* Keep this block for dummy scene given to students */
     const testCube = new THREE.BoxGeometry(100, 100, 100);
@@ -87,6 +87,8 @@ async function resetVis(){
 
     // voxel densities to be shown in histogram
     tf.setHistogramData(volume.voxels, 0.25);
+
+    orbitCamera = new OrbitCamera(camera, new THREE.Vector3(0,0,0), 2*volume.max, renderer.domElement);
 
     // init paint loop
     requestAnimationFrame(paint);
