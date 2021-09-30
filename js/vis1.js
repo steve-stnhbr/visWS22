@@ -66,7 +66,7 @@ async function resetVis(){
     // dummy scene: we render a box and attach our color test shader as material
     const testCube = new THREE.BoxGeometry(volume.width, volume.height, volume.depth);
     const testMaterial = testShader.material;
-    await testShader.load();
+    await testShader.load(); // this function needs to be called explicitly, and only works within an async function!
     const testMesh = new THREE.Mesh(testCube, testMaterial);
     scene.add(testMesh);
 

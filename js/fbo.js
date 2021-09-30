@@ -9,6 +9,7 @@
  * modification, are not permitted.
  *
  * Class for rendering a given mesh into an offscreen FBO texture with a given dimension.
+ * The rendered image can be accessed through renderTarget.texture.
  * Inspired by: https://gamedevelopment.tutsplus.com/tutorials/quick-tip-how-to-render-to-a-texture-in-threejs--cms-25686
  *
  * @author Manuela Waldner
