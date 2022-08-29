@@ -1,18 +1,24 @@
+## How to Use
+
+Load one of the provided volume files through the GUI. 
+Rotate the orbit camera around the bounding box using the left mouse button. Zoom using the scroll wheel. 
+
+**TODO: complete this section!** (how to use the editor etc.)
+
 ## Framework Description
 
 This framework uses three.js and d3.js for volume rendering and setting the appearance, respectively. 
 The following files are provided: 
 * **index.html**: contains the HTML content. Please enter your names! Otherwise, it does not need to be changed 
 (but can be, if required). 
-* **style.css**: CSS styles (can be adjusted, but do not need to be changed). 
+* **style.css**: CSS styles (can be adjusted, but does not need to be changed). 
 * **three.js/build/three.js**: Contains the three.js library. **Do not modify!**
 * **shaders**: Folder containing a dummy vertex and fragment shader. **Add your shaders to this folder!** 
 * **js**: Folder containing all JavaScript files. **Add new classes as separate js-files in this folder!** 
-    * **vis1.js**: Main script file. TODOs for students can be found there. Needs to be modified. 
+    * **vis1.js**: Main script file. Needs to be modified. 
     * **shader.js**: Base shader class. Does not need to be modified. Derive your custom shader materials from this class!
     * **testShader.js**: Example shader class demonstrating how to create and use a shader material 
-    using external .essl files. Should not be used in the final submission.  
-    * **fbo.js**: Frame buffer object class for convenience. Does not need to be modified. 
+    using external .essl files. Should not be used in the final submission.
     * **camera.js**: Simple orbit camera that moves nicely around our volumes. Does not need to be modified. 
     
 Created 2021 by Manuela Waldner, Diana Schalko, amd Laura Luidolt based on the Vis1 Task 1 Qt framework 
@@ -38,4 +44,4 @@ Recommended code editor: Visual Studio Code (free): https://code.visualstudio.co
 
 Install syntax highlighting for shading languages: https://marketplace.visualstudio.com/items?itemName=slevesque.shader
 
-Enable syntax highlighting: open shader file --> in the blue bar on the bottom, switch from plain text to GLSL 
+Enable syntax highlighting: open shader file --> in the bar on the bottom right, switch from plain text to GLSL.  

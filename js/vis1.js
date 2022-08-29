@@ -14,23 +14,21 @@
  * @author Laura Luidolt
  * @author Diana Schalko
  */
-let renderer, camera, scene, controls, orbitCamera;
+let renderer, camera, scene, orbitCamera;
 let canvasWidth, canvasHeight = 0;
 let container = null;
 let volume = null;
 let fileInput = null;
 let testShader = null;
 
+/**
+ * Load all data and initialize UI here.
+ */
 function init() {
     // volume viewer
     container = document.getElementById("viewContainer");
     canvasWidth = window.innerWidth * 0.7;
     canvasHeight = window.innerHeight * 0.7;
-
-    /*
-     * TODOs:
-     * - set up transfer function editor
-     */
 
     // WebGL renderer
     renderer = new THREE.WebGLRenderer();
@@ -45,6 +43,9 @@ function init() {
     testShader = new TestShader([255.0, 255.0, 0.0]);
 }
 
+/**
+ * Handles the file reader. No need to change anything here.
+ */
 function readFile(){
     let reader = new FileReader();
     reader.onloadend = function () {
@@ -58,6 +59,11 @@ function readFile(){
     reader.readAsArrayBuffer(fileInput.files[0]);
 }
 
+/**
+ * Construct the THREE.js scene and update histogram when a new volume is loaded by the user.
+ *
+ * Currently renders the bounding box of the volume.
+ */
 async function resetVis(){
     // create new empty scene and perspective camera
     scene = new THREE.Scene();
@@ -70,14 +76,6 @@ async function resetVis(){
     const testMesh = new THREE.Mesh(testCube, testMaterial);
     scene.add(testMesh);
 
-    /*
-     * TODOs:
-     * - set up FBOs to render front and back sides of a cube (you can use fbo.js)
-     * - store volume from volume.js in 3D texture
-     * - set up alpha compositing shader
-     * - initialize histogram for transfer function editor
-     */
-
     // our camera orbits around an object centered at (0,0,0)
     orbitCamera = new OrbitCamera(camera, new THREE.Vector3(0,0,0), 2*volume.max, renderer.domElement);
 
@@ -85,17 +83,11 @@ async function resetVis(){
     requestAnimationFrame(paint);
 }
 
+/**
+ * Render the scene and update all necessary shader information.
+ */
 function paint(){
-    if (!volume) return;
-
-    orbitCamera.update();
-
-    /*
-     * TODOs:
-     * - render cube sides to texture
-     * - set transfer function editor control points as shader uniforms
-     * - render the volume
-     */
-
-    renderer.render(scene, camera);
+    if (volume) {
+        renderer.render(scene, camera);
+    }
 }

@@ -21,7 +21,7 @@ class Volume {
         this.slice = this.width * this.height;
         this.size = this.slice * this.depth;
         this.max = Math.max(this.width, this.height, this.depth);
-        this.scale = [this.width, this.height, this.depth];
+        this.scale = new THREE.Vector3(this.width, this.height, this.depth);
 
         let floatArray = [];
         uint16Array.slice(3).forEach(function(voxel){
