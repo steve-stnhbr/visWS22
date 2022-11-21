@@ -18,6 +18,7 @@ let renderer, camera, scene, orbitCamera;
 let canvasWidth, canvasHeight = 0;
 let container = null;
 let volume = null;
+let dataTexture = null;
 let fileInput = null;
 let testShader = null;
 
@@ -32,23 +33,20 @@ function init() {
 
     // WebGL renderer
     renderer = new THREE.WebGLRenderer();
-    renderer.setSize( canvasWidth, canvasHeight );
-    container.appendChild( renderer.domElement );
+    renderer.setSize(canvasWidth, canvasHeight);
+    container.appendChild(renderer.domElement);
 
     // read and parse volume file
     fileInput = document.getElementById("upload");
     fileInput.addEventListener('change', readFile);
-
-    // dummy shader gets a color as input
-    testShader = new TestShader([255.0, 255.0, 0.0]);
 }
 
 /**
  * Handles the file reader. No need to change anything here.
  */
-function readFile(){
+function readFile() {
     let reader = new FileReader();
-    reader.onloadend = function () {
+    reader.onloadend = function() {
         console.log("data loaded: ");
 
         let data = new Uint16Array(reader.result);
@@ -64,10 +62,10 @@ function readFile(){
  *
  * Currently renders the bounding box of the volume.
  */
-async function resetVis(){
+async function resetVis() {
     // create new empty scene and perspective camera
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera( 75, canvasWidth / canvasHeight, 0.1, 1000 );
+    camera = new THREE.PerspectiveCamera(75, canvasWidth / canvasHeight, 0.1, 1000);
 
     // dummy scene: we render a box and attach our color test shader as material
     const testCube = new THREE.BoxGeometry(volume.width, volume.height, volume.depth);
@@ -77,7 +75,7 @@ async function resetVis(){
     scene.add(testMesh);
 
     // our camera orbits around an object centered at (0,0,0)
-    orbitCamera = new OrbitCamera(camera, new THREE.Vector3(0,0,0), 2*volume.max, renderer.domElement);
+    orbitCamera = new OrbitCamera(camera, new THREE.Vector3(0, 0, 0), 2 * volume.max, renderer.domElement);
 
     // init paint loop
     requestAnimationFrame(paint);
@@ -86,8 +84,13 @@ async function resetVis(){
 /**
  * Render the scene and update all necessary shader information.
  */
-function paint(){
+function paint() {
     if (volume) {
         renderer.render(scene, camera);
     }
+}
+
+
+function volumeToDataTexture3D() {
+    dataTexture = new THREE.Data3DTexture(volume.voxels, volume.width, volume.height, volume.depth);
 }

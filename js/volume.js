@@ -24,12 +24,12 @@ class Volume {
         this.scale = new THREE.Vector3(this.width, this.height, this.depth);
 
         let floatArray = [];
-        uint16Array.slice(3).forEach(function(voxel){
+        uint16Array.slice(3).forEach(function(voxel) {
             floatArray.push(voxel / 4095.0);
         });
         this.voxels = Float32Array.from(floatArray);
 
-        console.log(this.voxels.length + " voxels loaded - ["
-            + this.width + ", " + this.height + ", " + this.depth + "], max: " + this.max);
+        console.log(this.voxels.length + " voxels loaded - [" +
+            this.width + ", " + this.height + ", " + this.depth + "], max: " + this.max);
     }
 }
