@@ -17,36 +17,35 @@ class Shader {
     constructor(vertexProgram, fragmentProgram) {
         this.vertexProgram = vertexProgram;
         this.fragmentProgram = fragmentProgram;
-        this.material = new THREE.ShaderMaterial
-        ({
+        this.material = new THREE.ShaderMaterial({
             uniforms: {},
-            transparent: true
+            transparent: true,
+            side: THREE.DoubleSide
         });
     }
 
-    async #loadShader(shader, name){
-        const program = await d3.text("shaders/"+name+".essl");
+    async loadShader(shader, name) {
+        const program = await d3.text("shaders/" + name + ".glsl");
         this.material[shader] = program;
     }
 
     // this function has to be explicitly called after the constructor from another async function like that:
     // await yourShader.load();
-    async load(){
-        await this.#loadShader("vertexShader", this.vertexProgram);
-        await this.#loadShader("fragmentShader", this.fragmentProgram);
+    async load() {
+        await this.loadShader("vertexShader", this.vertexProgram);
+        await this.loadShader("fragmentShader", this.fragmentProgram);
     }
 
     // use the type parameter for array variants that are not supported by THREE.Uniform yet:
     // e.g., v2v (array of THREE.Vector2), v3v (array of THREE.Vector3) etc.
     // otherwise only set key and value
-    setUniform(key, value, type){
-        if(typeof type !== 'undefined'){
+    setUniform(key, value, type) {
+        if (typeof type !== 'undefined') {
             this.material.uniforms[key] = {
                 'type': type,
                 'value': value
             };
-        }
-        else{
+        } else {
             this.material.uniforms[key] = new THREE.Uniform(value);
         }
     }
