@@ -39,12 +39,14 @@ function init() {
     // read and parse volume file
     fileInput = document.getElementById("upload");
     fileInput.addEventListener('change', readFile);
+
+    fetch('../data/head_256x256x224.dat').then(res => res.blob().then(blob => readFile(blob)));
 }
 
 /**
  * Handles the file reader. No need to change anything here.
  */
-function readFile() {
+function readFile(file) {
     let reader = new FileReader();
     reader.onloadend = function() {
         console.log("data loaded: ");
@@ -54,7 +56,7 @@ function readFile() {
 
         resetVis();
     };
-    reader.readAsArrayBuffer(fileInput.files[0]);
+    reader.readAsArrayBuffer(file || fileInput.files[0]);
 }
 
 /**
@@ -66,18 +68,32 @@ async function resetVis() {
     // create new empty scene and perspective camera
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, canvasWidth / canvasHeight, 0.1, 1000);
-
     volumeToDataTexture3D();
-    const shader = new ShaderImpl([volume.width, volume.depth, volume.height], 0, .34, [0, 1], dataTexture, await new THREE.TextureLoader().load('textures/cm_viridis.png'));
+    // const shader = new ShaderImpl(
+    //     [volume.width, volume.height, volume.depth],
+    //     0,
+    //     .34, [0, 1],
+    //     dataTexture,
+    //     await new THREE.TextureLoader().load('textures/cm_viridis.png'));
+
+    const max = Math.max(volume.width, volume.height, volume.depth);
+
+    const shader = new ShaderExm(
+        [volume.width / max, volume.height / max, volume.depth / max],
+        dataTexture,
+        await new THREE.TextureLoader().load('textures/cm_viridis.png'), [volume.width, volume.height, volume.depth]
+    );
     await shader.load();
-    const domain = new THREE.BoxGeometry(volume.width, volume.height, volume.depth);
-    domain.translate(100, 100, 100);
-    const center = new THREE.BoxGeometry(20, 20, 20);
-    const x = new THREE.BoxGeometry(20, 20, 20);
+    const domain = new THREE.BoxGeometry(volume.width, volume.depth, volume.height);
+    // domain.translate(volume.width / 2, volume.depth / 2, volume.height / 4);
+    // position markers
+    const markerSize = 15;
+    const center = new THREE.BoxGeometry(markerSize, markerSize, markerSize);
+    const x = new THREE.BoxGeometry(markerSize, markerSize, markerSize);
     x.translate(100, 0, 0);
-    const y = new THREE.BoxGeometry(20, 20, 20);
+    const y = new THREE.BoxGeometry(markerSize, markerSize, markerSize);
     y.translate(0, 100, 0);
-    const z = new THREE.BoxGeometry(20, 20, 20);
+    const z = new THREE.BoxGeometry(markerSize, markerSize, markerSize);
     z.translate(0, 0, 100);
     const domainMesh = new THREE.Mesh(domain, shader.material);
     const centerMesh = new THREE.Mesh(center, new THREE.MeshBasicMaterial({
@@ -100,7 +116,6 @@ async function resetVis() {
 
     // our camera orbits around an object centered at (0,0,0)
     orbitCamera = new OrbitCamera(camera, new THREE.Vector3(0, 0, 0), 2 * volume.max, renderer.domElement);
-
     // init paint loop
     requestAnimationFrame(paint);
 }
@@ -121,5 +136,6 @@ function volumeToDataTexture3D() {
     dataTexture.type = THREE.FloatType;
     dataTexture.minFilter = dataTexture.magFilter = THREE.LinearFilter;
     dataTexture.unpackAlignment = 1;
+    dataTexture.wrapR = dataTexture.wrapS = dataTexture.wrapT = THREE.ClampToEdgeWrapping;
     dataTexture.needsUpdate = true;
 }
