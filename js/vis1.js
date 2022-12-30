@@ -21,6 +21,10 @@ let volume = null;
 let dataTexture = null;
 let fileInput = null;
 let testShader = null;
+let shader = null;
+let domainMesh = null;
+
+let mouseDown = false;
 
 /**
  * Load all data and initialize UI here.
@@ -41,6 +45,9 @@ function init() {
     fileInput.addEventListener('change', readFile);
 
     fetch('../data/head_256x256x224.dat').then(res => res.blob().then(blob => readFile(blob)));
+
+    window.onmousedown = () => mouseDown = true;
+    window.onmouseup = window.onmouseleave = () => mouseDown = false;
 }
 
 /**
@@ -56,7 +63,7 @@ function readFile(file) {
         resetVis();
         setupD3();
     };
-    reader.readAsArrayBuffer(file || fileInput.files[0]);
+    reader.readAsArrayBuffer(fileInput.files[0] || file);
 }
 
 /**
@@ -78,16 +85,18 @@ async function resetVis() {
 
     const max = Math.max(volume.width, volume.height, volume.depth);
 
-    const shader = new ShaderExm(
+    shader = new ShaderExm(
         dataTexture,
         await new THREE.TextureLoader().load('textures/cm_viridis.png'), [volume.width, volume.height, volume.depth],
         .3
     );
+
+    console.log(shader.material.uniforms);
     await shader.load();
     const domain = new THREE.BoxGeometry(volume.width, volume.depth, volume.height);
     // domain.translate(volume.width / 2, volume.depth / 2, volume.height / 4);
     // position markers
-    const domainMesh = new THREE.Mesh(domain, shader.material);
+    domainMesh = new THREE.Mesh(domain, shader.material);
     scene.add(domainMesh);
     // our camera orbits around an object centered at (0,0,0)
     orbitCamera = new OrbitCamera(camera, new THREE.Vector3(0, 0, 0), 2 * volume.max, renderer.domElement);
@@ -116,41 +125,67 @@ function volumeToDataTexture3D() {
 }
 
 function setupD3() {
-    var width = 50,
-        height = 50;
+    const histogramElement = document.getElementById("tfContainer");
+    if (histogramElement.firstChild)
+        histogramElement.removeChild(histogramElement.firstChild);
+    const width = histogramElement.offsetWidth,
+        height = width * 3 / 4;
 
-    var margin = { top: 0, right: 0, bottom: 0, left: 0 };
+    const margin = { top: 20, right: 15, bottom: 0, left: 0 };
+    const padding = 1;
+    const amount = 50;
 
     var bins = d3.histogram()
-        .domain([0, 1])
-        .thresholds(20)
+        .domain([.01, 1])
+        .thresholds(amount)
         (volume.voxels);
+
     var x = d3.scaleLinear()
-        .domain([0, 1])
+        .domain([.01, 1])
         .range([0, width])
 
-    // Set the scale for the y-axis
     var y = d3.scaleLinear()
-        .domain([0, d3.max(bins, function(d) { return d.length; })])
-        .range([height - margin.bottom, margin.top]);
+        .domain([0, d3.max(bins, d => d.length)])
+        .range([margin.bottom, height - margin.top]);
 
-    var svg = d3.select("#tfContainer").append("svg");
+    var svg = d3.select("#tfContainer").append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .on("mousemove", (event) => {
+            if (!mouseDown) return;
+            const density = event.offsetX / width;
+            domainMesh.material.uniforms.iso_value.value = density;
+            domainMesh.material.needsUpdate = true;
+            paint();
+            const el = document.getElementById("indicator")
+            el.parentNode.removeChild(el);
+            svg.append("circle")
+                .attr("x", event.offsetX)
+                .attr("y", height - event.offsetY)
+                .attr("r", 20)
+                .attr("color", "white")
+                .attr("id", "indicator");
+        });
 
     svg.selectAll(".bar")
         .data(bins)
         .enter()
         .append("rect")
         .attr("class", "bar")
-        .attr("x", function(d) { return x(d.x0); })
-        .attr("y", function(d) { return y(d.length); })
-        .attr("width", function(d) { return x(d.x1) - x(d.x0) - 1; })
-        .attr("height", function(d) { return height - y(d.length) - margin.bottom; })
-        .attr("color", "white");
+        .attr("x", d => x(d.x0))
+        .attr("y", margin.top)
+        .attr("color", "white")
+        .attr("width", (width / amount) - padding)
+        .transition()
+        .duration(500)
+        .ease(d3.easeCubicInOut)
+        .attr("height", d => y(d.length));
 
     svg.append("g")
         .attr("class", "axis")
-        .attr("transform", "translate(0," + (height - margin.bottom) + ")")
-        .call(d3.axisBottom(x));
+        .attr("transform", "translate(0," + (margin.top) + ")")
+        .attr("style", "user-select: none")
+        .call(d3.axisTop(x));
 
     // Append the y-axis to the visualization
     svg.append("g")
@@ -158,3 +193,5 @@ function setupD3() {
         .attr("transform", "translate(" + margin.left + ",0)")
         .call(d3.axisLeft(y));
 }
+
+function onClick(event) {}

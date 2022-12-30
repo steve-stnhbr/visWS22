@@ -29,7 +29,8 @@ body {
 }
 
 rect {
-    width: .1rem;
+    /* width: .1rem; */
     color: white;
     fill: white;
+    transition: height 500ms ease-out;
 }
