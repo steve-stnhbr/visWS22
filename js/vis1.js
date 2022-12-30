@@ -49,12 +49,12 @@ function init() {
 function readFile(file) {
     let reader = new FileReader();
     reader.onloadend = function() {
-        console.log("data loaded: ");
 
         let data = new Uint16Array(reader.result);
         volume = new Volume(data);
 
         resetVis();
+        setupD3();
     };
     reader.readAsArrayBuffer(file || fileInput.files[0]);
 }
@@ -79,41 +79,16 @@ async function resetVis() {
     const max = Math.max(volume.width, volume.height, volume.depth);
 
     const shader = new ShaderExm(
-        [volume.width / max, volume.height / max, volume.depth / max],
         dataTexture,
-        await new THREE.TextureLoader().load('textures/cm_viridis.png'), [volume.width, volume.height, volume.depth]
+        await new THREE.TextureLoader().load('textures/cm_viridis.png'), [volume.width, volume.height, volume.depth],
+        .3
     );
     await shader.load();
     const domain = new THREE.BoxGeometry(volume.width, volume.depth, volume.height);
     // domain.translate(volume.width / 2, volume.depth / 2, volume.height / 4);
     // position markers
-    const markerSize = 15;
-    const center = new THREE.BoxGeometry(markerSize, markerSize, markerSize);
-    const x = new THREE.BoxGeometry(markerSize, markerSize, markerSize);
-    x.translate(100, 0, 0);
-    const y = new THREE.BoxGeometry(markerSize, markerSize, markerSize);
-    y.translate(0, 100, 0);
-    const z = new THREE.BoxGeometry(markerSize, markerSize, markerSize);
-    z.translate(0, 0, 100);
     const domainMesh = new THREE.Mesh(domain, shader.material);
-    const centerMesh = new THREE.Mesh(center, new THREE.MeshBasicMaterial({
-        color: new THREE.Color("#ffffff")
-    }));
-    const xMesh = new THREE.Mesh(x, new THREE.MeshBasicMaterial({
-        color: new THREE.Color("#ff0000")
-    }));
-    const yMesh = new THREE.Mesh(y, new THREE.MeshBasicMaterial({
-        color: new THREE.Color("#00ff00")
-    }));
-    const zMesh = new THREE.Mesh(z, new THREE.MeshBasicMaterial({
-        color: new THREE.Color("#0000ff")
-    }));
     scene.add(domainMesh);
-    scene.add(centerMesh);
-    scene.add(xMesh);
-    scene.add(yMesh);
-    scene.add(zMesh);
-
     // our camera orbits around an object centered at (0,0,0)
     orbitCamera = new OrbitCamera(camera, new THREE.Vector3(0, 0, 0), 2 * volume.max, renderer.domElement);
     // init paint loop
@@ -138,4 +113,48 @@ function volumeToDataTexture3D() {
     dataTexture.unpackAlignment = 1;
     dataTexture.wrapR = dataTexture.wrapS = dataTexture.wrapT = THREE.ClampToEdgeWrapping;
     dataTexture.needsUpdate = true;
+}
+
+function setupD3() {
+    var width = 50,
+        height = 50;
+
+    var margin = { top: 0, right: 0, bottom: 0, left: 0 };
+
+    var bins = d3.histogram()
+        .domain([0, 1])
+        .thresholds(20)
+        (volume.voxels);
+    var x = d3.scaleLinear()
+        .domain([0, 1])
+        .range([0, width])
+
+    // Set the scale for the y-axis
+    var y = d3.scaleLinear()
+        .domain([0, d3.max(bins, function(d) { return d.length; })])
+        .range([height - margin.bottom, margin.top]);
+
+    var svg = d3.select("#tfContainer").append("svg");
+
+    svg.selectAll(".bar")
+        .data(bins)
+        .enter()
+        .append("rect")
+        .attr("class", "bar")
+        .attr("x", function(d) { return x(d.x0); })
+        .attr("y", function(d) { return y(d.length); })
+        .attr("width", function(d) { return x(d.x1) - x(d.x0) - 1; })
+        .attr("height", function(d) { return height - y(d.length) - margin.bottom; })
+        .attr("color", "white");
+
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + (height - margin.bottom) + ")")
+        .call(d3.axisBottom(x));
+
+    // Append the y-axis to the visualization
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(" + margin.left + ",0)")
+        .call(d3.axisLeft(y));
 }

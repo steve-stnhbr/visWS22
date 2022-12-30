@@ -7,7 +7,6 @@ uniform highp sampler3D volume;
 uniform highp sampler2D transfer_fcn;
 uniform ivec3 volume_dims;
 
-in vec3 vray_dir;
 flat in vec3 transformed_eye;
 
 vec2 intersect_box(vec3 orig, vec3 dir) {

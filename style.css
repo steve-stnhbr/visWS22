@@ -6,24 +6,30 @@ body {
 
 .container {
     display: flex;
-    vertical-align:top;
+    vertical-align: top;
     width: 100%;
     height: 50%;
     padding: 10px;
     border: 0px solid black;
 }
 
-#viewContainer{
+#viewContainer {
     flex: 2;
 }
 
-#tfContainer{
+#tfContainer {
     flex: 1;
 }
 
-.dot{
+.dot {
     height: 5px;
     width: 5px;
     border-radius: 50%;
     margin: 1px;
+}
+
+rect {
+    width: .1rem;
+    color: white;
+    fill: white;
 }
