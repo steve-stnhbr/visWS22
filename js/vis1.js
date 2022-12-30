@@ -26,6 +26,14 @@ let domainMesh = null;
 
 let mouseDown = false;
 
+let indicators = [];
+
+class Indicator {
+    xValue;
+    density;
+    color;
+}
+
 /**
  * Load all data and initialize UI here.
  */
@@ -134,6 +142,7 @@ function setupD3() {
     const margin = { top: 20, right: 15, bottom: 0, left: 0 };
     const padding = 1;
     const amount = 50;
+    const indicatorRadius = 10;
 
     var bins = d3.histogram()
         .domain([.01, 1])
@@ -153,18 +162,27 @@ function setupD3() {
         .attr("height", height)
         .on("mousemove", (event) => {
             if (!mouseDown) return;
+            const mTop = margin.top;
             const density = event.offsetX / width;
             domainMesh.material.uniforms.iso_value.value = density;
             domainMesh.material.needsUpdate = true;
             paint();
             const el = document.getElementById("indicator")
-            el.parentNode.removeChild(el);
-            svg.append("circle")
-                .attr("x", event.offsetX)
-                .attr("y", height - event.offsetY)
-                .attr("r", 20)
-                .attr("color", "white")
+            if (el)
+                el.parentElement.removeChild(el);
+
+            const group =
+                svg.append("g")
                 .attr("id", "indicator");
+            group.append("circle")
+                .attr("cx", event.offsetX)
+                .attr("cy", event.offsetY)
+                .attr("r", indicatorRadius)
+                .attr("fill", "#ffffffaa")
+            group.append("path")
+                .attr("d", `M ${event.offsetX} ${event.offsetY - indicatorRadius / 2} V ${mTop}`)
+                .attr("stroke", "#ffffffaa")
+                .attr("stroke-width", 1);
         });
 
     svg.selectAll(".bar")
