@@ -1,6 +1,14 @@
 precision highp int;
 precision highp float;
 
+struct Indicator {
+	float opacity;
+	float density;
+	vec3 color;
+};
+
+uniform Indicator indicators[5];
+
 uniform highp sampler3D volume;
 
 uniform highp sampler2D transfer_fcn;
@@ -21,9 +29,9 @@ const lowp float F_AMBIENT_OCCLUSION_RAY_AMOUNT = float(AMBIENT_OCCLUSION_RAY_AM
 const lowp float AMBIENT_OCCLUSION_RAY_LENGTH = .5;
 
 void castMIP(vec3 start, vec3 step, float stepSize, int stepAmount);
-void castFirstHit(vec3 start, vec3 step, float stepSize, int stepAmount, float iso);
+void castFirstHit(vec3 start, vec3 step, float stepSize, int stepAmount, float iso, vec4 color);
 float sampleVolume(vec3 pos);
-vec4 calculateLighting(vec3 position, vec3 normal, float ambienOcclusion);
+vec4 calculateLighting(vec3 position, vec3 normal, float ambienOcclusion, vec4 baseColor);
 float calculateAmbientOcclusion(vec3 pos, float stepSize);
 
 vec2 intersect_box(vec3 orig, vec3 dir) {
@@ -72,7 +80,18 @@ void main() {
 	if (render_mode == 0) {
 		castMIP(start, ray_dir, dt, stepAmount);
 	} else if (render_mode == 1) {
-		castFirstHit(start, ray_dir, dt, stepAmount, iso_value);
+		for (int i = 0; i < 5; i++) {
+			if (indicators[i].opacity > 0.) {
+				castFirstHit(
+					start, 
+					ray_dir, 
+					dt, 
+					stepAmount, 
+					indicators[i].density, 
+					vec4(indicators[i].color, indicators[i].opacity)
+				);
+			}
+		}
 	}
 }
 
@@ -90,7 +109,7 @@ void castMIP(vec3 start, vec3 step, float stepSize, int stepAmount) {
 	// gl_FragColor = vec4(1, 1, 1, maxVal);
 }
 
-void castFirstHit(highp vec3 start, highp vec3 step, highp float stepSize, int stepAmount, float iso) {
+void castFirstHit(highp vec3 start, highp vec3 step, highp float stepSize, int stepAmount, float iso, vec4 baseColor) {
 	float epsilon = stepSize / 2.;
 	float epsilonX = 1. / volume_dims.x;
 	float epsilonY = 1. / volume_dims.y;
@@ -108,7 +127,7 @@ void castFirstHit(highp vec3 start, highp vec3 step, highp float stepSize, int s
 			gl_FragColor = vec4(vec3(ambientOcclusion), 1);
 			gl_FragColor = vec4(surfaceNormal, 1);
 			// gl_FragColor = vec4(epsilonX, epsilonY, epsilonZ, 1);
-			gl_FragColor = calculateLighting(start, surfaceNormal, 1.);
+			gl_FragColor = calculateLighting(start, surfaceNormal, 1., baseColor);
 			return;
         }
         start += step * stepSize;
@@ -119,7 +138,7 @@ float sampleVolume(vec3 pos) {
 	return texture(volume, pos).r;
 }
 
-vec4 calculateLighting(vec3 pos, vec3 normal, float ambientOcclusion) {
+vec4 calculateLighting(vec3 pos, vec3 normal, float ambientOcclusion, vec4 baseColor) {
 	// Light position
 	vec3 lightPosition = cameraPosition;
 
@@ -136,7 +155,7 @@ vec4 calculateLighting(vec3 pos, vec3 normal, float ambientOcclusion) {
 
 	// Calculate the final color
 	vec3 color = ambientColor + diffuse + specular;
-	return vec4(color, 1);
+	return baseColor * vec4(color, 1);
 }
 
 float calculateAmbientOcclusion(vec3 pos, float stepSize) {

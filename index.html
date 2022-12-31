@@ -2,10 +2,10 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Vis1</title>
 
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="style.css" />
 
     <!-- include THREE.js -->
     <script src="three.js/build/three.js"></script>
@@ -22,32 +22,78 @@
     <script src="js/volume.js"></script>
     <script src="js/camera.js"></script>
     <script src="js/vis1.js"></script>
-
 </head>
 
 <!-- call init function when page has loaded -->
 
 <body onload="init()">
-
     <h1>Vis1 Exercise</h1>
     <h2>Stefan Steinheber (12022506)</h2>
     <h2>Maximilian Winfried Kraus (11816865)</h2>
 
     <!-- data selector -->
-    <p>Select your data here: <input id="upload" type="file"></p>
+    <p>Select your data here: <input id="upload" type="file" /></p>
 
     <div class="container">
-
         <!-- volume rendering container -->
         <div id="viewContainer"></div>
 
         <!-- container for interactive transfer function -->
-        <div id="tfContainer"></div>
-
+        <div id="tfContainer">
+            <div class="swatch-picker-wrapper" hidden="true">
+                <fieldset class="swatch-picker">
+                    <div style="display: flex">
+                        <p style="flex-grow: 1">Select Color</p>
+                        <p class="close" style="float: right; cursor: pointer">x</p>
+                    </div>
+                    <label>
+              <input type="radio" name="swatch_1234" value="blue" />
+              <span style="background-color: #ffffff">Blue</span>
+            </label>
+                    <label>
+              <input type="radio" name="swatch_1234" value="blue" />
+              <span style="background-color: #11f100">Blue</span>
+            </label>
+                    <label>
+              <input type="radio" name="swatch_1234" value="gray" />
+              <span style="background-color: #ff8c00">Gray</span>
+            </label>
+                    <label>
+              <input type="radio" name="swatch_1234" value="black" />
+              <span style="background-color: #e81123">Black</span>
+            </label>
+                    <label>
+              <input type="radio" name="swatch_1234" value="black" />
+              <span style="background-color: #ec008c">Black</span>
+            </label>
+                    <label>
+              <input type="radio" name="swatch_1234" value="black" />
+              <span style="background-color: #68217a">Black</span>
+            </label>
+                    <label>
+              <input type="radio" name="swatch_1234" value="black" />
+              <span style="background-color: #00188f">Black</span>
+            </label>
+                    <label>
+              <input type="radio" name="swatch_1234" value="black" />
+              <span style="background-color: #00bcf2">Black</span>
+            </label>
+                    <label>
+              <input type="radio" name="swatch_1234" value="black" />
+              <span style="background-color: #00b294">Black</span>
+            </label>
+                    <label>
+              <input type="radio" name="swatch_1234" value="black" />
+              <span style="background-color: #009e49">Black</span>
+            </label>
+                    <label>
+              <input type="radio" name="swatch_1234" value="black" />
+              <span style="background-color: #bad80a">Black</span>
+            </label>
+                </fieldset>
+            </div>
+        </div>
     </div>
-
-
-
 </body>
 
 </html>

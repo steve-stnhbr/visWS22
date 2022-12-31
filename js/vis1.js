@@ -27,11 +27,24 @@ let domainMesh = null;
 let mouseDown = false;
 
 let indicators = [];
+let indicatorPushed = false;
+let clickedIndicator = null;
+
+
+
+const margin = { top: 20, right: 15, bottom: 0, left: 0 };
+const padding = 1;
+const amount = 50;
+const indicatorRadius = 10;
+const colors = ["ffff00", "ff00ff"];
 
 class Indicator {
     xValue;
+    yValue;
     density;
     color;
+    opacity;
+    index;
 }
 
 /**
@@ -96,10 +109,10 @@ async function resetVis() {
     shader = new ShaderExm(
         dataTexture,
         await new THREE.TextureLoader().load('textures/cm_viridis.png'), [volume.width, volume.height, volume.depth],
-        .3
+        .3,
+        indicators
     );
 
-    console.log(shader.material.uniforms);
     await shader.load();
     const domain = new THREE.BoxGeometry(volume.width, volume.depth, volume.height);
     // domain.translate(volume.width / 2, volume.depth / 2, volume.height / 4);
@@ -139,10 +152,6 @@ function setupD3() {
     const width = histogramElement.offsetWidth,
         height = width * 3 / 4;
 
-    const margin = { top: 20, right: 15, bottom: 0, left: 0 };
-    const padding = 1;
-    const amount = 50;
-    const indicatorRadius = 10;
 
     var bins = d3.histogram()
         .domain([.01, 1])
@@ -162,28 +171,59 @@ function setupD3() {
         .attr("height", height)
         .on("mousemove", (event) => {
             if (!mouseDown) return;
-            const mTop = margin.top;
             const density = event.offsetX / width;
-            domainMesh.material.uniforms.iso_value.value = density;
-            domainMesh.material.needsUpdate = true;
-            paint();
-            const el = document.getElementById("indicator")
-            if (el)
-                el.parentElement.removeChild(el);
+            const opacity = event.offsetY / height;
 
-            const group =
-                svg.append("g")
-                .attr("id", "indicator");
-            group.append("circle")
-                .attr("cx", event.offsetX)
-                .attr("cy", event.offsetY)
-                .attr("r", indicatorRadius)
-                .attr("fill", "#ffffffaa")
-            group.append("path")
-                .attr("d", `M ${event.offsetX} ${event.offsetY - indicatorRadius / 2} V ${mTop}`)
-                .attr("stroke", "#ffffffaa")
-                .attr("stroke-width", 1);
+            let ind = {
+                xValue: event.offsetX,
+                yValue: event.offsetY,
+                color: new THREE.Vector3(1, 1, 1),
+                index: indicators.length - 1,
+                density,
+                opacity
+            };
+
+            if (clickedIndicator) {
+                ind.color = clickedIndicator.color;
+                indicators[clickedIndicator.index] = ind;
+            } else if (!indicatorPushed) {
+                indicatorPushed = addIndicator(ind);
+            } else {
+                indicators[indicators.length - 1] = ind;
+            }
+
+            updateIndicators();
+
+            d3.select("#indicator")
+                .data(indicators)
+                .enter()
+            paint();
+        })
+        .on("mouseup", (event) => {
+            if (!indicatorPushed) {
+                const density = event.offsetX / width;
+                const opacity = event.offsetY / height;
+                addIndicator({
+                    xValue: event.offsetX,
+                    yValue: event.offsetY,
+                    color: new THREE.Vector3(1, 1, 1),
+                    index: indicators.length - 1,
+                    density,
+                    opacity
+                });
+                updateIndicators();
+            }
+            indicatorPushed = false;
+            clickedIndicator = null;
+        })
+        .on("mousedown", () => {
+            d3.select(".swatch-picker-wrapper")
+                .attr("hidden", "");
         });
+    svg.append("g")
+        .attr("id", "indicator")
+    svg.append("g")
+        .attr("id", "bars");
 
     svg.selectAll(".bar")
         .data(bins)
@@ -212,4 +252,81 @@ function setupD3() {
         .call(d3.axisLeft(y));
 }
 
-function onClick(event) {}
+function updateIndicators() {
+    d3.select("#indicator")
+        .selectAll("g")
+        .remove();
+
+    const data = d3.select("#indicator")
+        .selectAll("g")
+        .data(indicators)
+        .enter()
+        .append("g")
+        .attr("index", d => d.index);
+    const circle = data.append("circle");
+    circle.attr("cx", d => d.xValue)
+        .attr("cy", d => d.yValue)
+        .attr("r", indicatorRadius)
+        .attr("fill", d => `${vectorToColor(d.color)}`)
+        .on("mousedown", (event, d) => {
+            clickedIndicator = d;
+            updateIndicators();
+        })
+        .on("mouseup", (event, d) => {
+            indicatorPushed = true;
+            mouseDown = false;
+            if (clickedIndicator == d) {
+                clickedIndicator = null;
+                showColorSelection(circle, d);
+            }
+            updateIndicators();
+        })
+    data.append("path")
+        .attr("d", d => `M ${d.xValue} ${d.yValue - indicatorRadius / 2} V ${margin.top}`)
+        .attr("stroke", d => `${vectorToColor(d.color)}`)
+        .attr("stroke-width", 1);
+
+    domainMesh.material.uniforms.indicators.value = shader.prepareIndicators(indicators);
+    domainMesh.material.needsUpdate = true;
+    paint();
+}
+
+function addIndicator(indicator) {
+    if (indicators.length >= 5) {
+        console.error("There can only be 5 indicators");
+        return false;
+    }
+
+    indicators.push(indicator);
+    return true;
+}
+
+
+function vectorToColor(vec) {
+    return `rgb(${vec.x * 255}, ${vec.y * 255}, ${vec.z * 255})`;
+}
+
+function showColorSelection(circle, data) {
+    const wrapper = d3.select(".swatch-picker-wrapper")
+        .attr("hidden", null);
+    const picker = wrapper
+        .select(".swatch-picker")
+    picker.attr("style", `top: ${data.yValue}px; left: ${data.xValue}px`)
+    picker.select(".close")
+        .on("click", () => wrapper.attr("hidden", ""))
+    picker.selectAll("span")
+        .on("click", (event) => {
+            indicators[data.index].color = colorToVector(event.currentTarget.style.backgroundColor);
+            updateIndicators();
+        })
+}
+
+function colorToVector(col) {
+    const regex = /rgb\(([0-9]{1,3}), ?([0-9]{1,3}), ?([0-9]{1,3})\)/;
+    const matches = col.match(regex);
+    return new THREE.Vector3(
+        parseInt(matches[1]) / 255,
+        parseInt(matches[2]) / 255,
+        parseInt(matches[3]) / 255
+    );
+}
