@@ -30,13 +30,13 @@ let indicators = [];
 let indicatorPushed = false;
 let clickedIndicator = null;
 
-
-
-const margin = { top: 20, right: 15, bottom: 0, left: 0 };
-const padding = 1;
-const amount = 50;
+const margin = { top: 20, right: 15, bottom: 15, left: 0 };
+const padding = 2;
+const amount = 80;
 const indicatorRadius = 10;
 const colors = ["ffff00", "ff00ff"];
+
+const renderModes = ["Maximum Intensity Projection", "First Hit Projection", "Ambient Occlusion (beta)"];
 
 class Indicator {
     xValue;
@@ -170,6 +170,7 @@ function setupD3() {
         .attr("width", width)
         .attr("height", height)
         .on("mousemove", (event) => {
+            // if mouse is not dragging, ignore
             if (!mouseDown) return;
             const density = event.offsetX / width;
             const opacity = event.offsetY / height;
@@ -178,18 +179,20 @@ function setupD3() {
                 xValue: event.offsetX,
                 yValue: event.offsetY,
                 color: new THREE.Vector3(1, 1, 1),
-                index: indicators.length - 1,
                 density,
                 opacity
             };
 
+
             if (clickedIndicator) {
                 ind.color = clickedIndicator.color;
+                ind.index = clickedIndicator.index;
                 indicators[clickedIndicator.index] = ind;
             } else if (!indicatorPushed) {
                 indicatorPushed = addIndicator(ind);
             } else {
-                indicators[indicators.length - 1] = ind;
+                ind.index = indicators.length - 1;
+                indicators[ind.index] = ind;
             }
 
             updateIndicators();
@@ -207,7 +210,6 @@ function setupD3() {
                     xValue: event.offsetX,
                     yValue: event.offsetY,
                     color: new THREE.Vector3(1, 1, 1),
-                    index: indicators.length - 1,
                     density,
                     opacity
                 });
@@ -250,6 +252,15 @@ function setupD3() {
         .attr("class", "axis")
         .attr("transform", "translate(" + margin.left + ",0)")
         .call(d3.axisLeft(y));
+
+    d3.select("#tfContainer")
+        .select('#renderModes')
+        .on("change", onSelectChange)
+        .selectAll("option")
+        .data(renderModes)
+        .enter()
+        .append("option")
+        .html(d => d);
 }
 
 function updateIndicators() {
@@ -275,7 +286,8 @@ function updateIndicators() {
         .on("mouseup", (event, d) => {
             indicatorPushed = true;
             mouseDown = false;
-            if (clickedIndicator == d) {
+            if (clickedIndicator === d) {
+                console.log(d);
                 clickedIndicator = null;
                 showColorSelection(circle, d);
             }
@@ -296,7 +308,7 @@ function addIndicator(indicator) {
         console.error("There can only be 5 indicators");
         return false;
     }
-
+    indicator.index = indicators.length;
     indicators.push(indicator);
     return true;
 }
@@ -314,6 +326,12 @@ function showColorSelection(circle, data) {
     picker.attr("style", `top: ${data.yValue}px; left: ${data.xValue}px`)
     picker.select(".close")
         .on("click", () => wrapper.attr("hidden", ""))
+    picker.select(".remove")
+        .on("click", () => {
+            indicators.splice(data.index, 1);
+            wrapper.attr("hidden", "")
+            updateIndicators();
+        });
     picker.selectAll("span")
         .on("click", (event) => {
             indicators[data.index].color = colorToVector(event.currentTarget.style.backgroundColor);
@@ -329,4 +347,11 @@ function colorToVector(col) {
         parseInt(matches[2]) / 255,
         parseInt(matches[3]) / 255
     );
+}
+
+function onSelectChange(event) {
+    console.log(event.target.selectedIndex);
+    domainMesh.material.uniforms["render_mode"].value = event.target.selectedIndex.toString();
+    domainMesh.material.needsUpdate = true;
+    paint();
 }

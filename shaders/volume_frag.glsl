@@ -30,6 +30,7 @@ const lowp float AMBIENT_OCCLUSION_RAY_LENGTH = .5;
 
 void castMIP(vec3 start, vec3 step, float stepSize, int stepAmount);
 void castFirstHit(vec3 start, vec3 step, float stepSize, int stepAmount, float iso, vec4 color);
+void castAmbientOcclusion(vec3 start, vec3 step, float stepSize, int stepAmount);
 float sampleVolume(vec3 pos);
 vec4 calculateLighting(vec3 position, vec3 normal, float ambienOcclusion, vec4 baseColor);
 float calculateAmbientOcclusion(vec3 pos, float stepSize);
@@ -53,6 +54,7 @@ vec4 sampleColor(float val) {
 }
 
 void main() {
+
 	// Step 1: Normalize the view ray
 	vec3 ray_dir = normalize(viewRay);
 
@@ -92,6 +94,8 @@ void main() {
 				);
 			}
 		}
+	} else if (render_mode == 2) {
+		castAmbientOcclusion(start, ray_dir, dt, stepAmount);
 	}
 }
 
@@ -183,4 +187,15 @@ float calculateAmbientOcclusion(vec3 pos, float stepSize) {
 	}
 
 	return occlusion /= F_AMBIENT_OCCLUSION_RAY_AMOUNT;
+}
+
+void castAmbientOcclusion(vec3 start, vec3 step, float stepSize, int stepAmount) {
+	// for (int i = 0; i < stepAmount; i++) {
+    //     float val = sampleVolume(start.xyz);
+    //     if (val > maxVal) {
+    //         maxVal = val;
+    //     }
+	// 	start += step * stepSize;
+    // }
+	gl_FragColor = vec4(1, 0, 1, 1);
 }

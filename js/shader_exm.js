@@ -4,10 +4,12 @@ class ShaderExm extends Shader {
         this.setUniform("volume", data, "sampler3D");
         this.setUniform("transfer_fcn", colorMap, "sampler2D");
         this.setUniform("volume_dims", new THREE.Vector3(dims[0], dims[1], dims[2]), 'vec3');
-        this.setUniform("render_mode", 1, "int");
+        this.setUniform("render_mode", 0, "int");
         this.setUniform("iso_value", iso, "float");
         this.setUniform("indicators", this.prepareIndicators(indicators), "Indicator");
         this.material.transparent = true;
+        this.material.depthWrite = false;
+        this.material.side = THREE.DoubleSide;
     }
 
     updateIndicators(indicators) {
