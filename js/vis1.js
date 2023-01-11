@@ -69,6 +69,7 @@ function init() {
 
     window.onmousedown = () => mouseDown = true;
     window.onmouseup = window.onmouseleave = () => mouseDown = false;
+    setupDropdown();
 }
 
 /**
@@ -109,7 +110,7 @@ async function resetVis() {
     shader = new ShaderExm(
         dataTexture,
         await new THREE.TextureLoader().load('textures/cm_viridis.png'), [volume.width, volume.height, volume.depth],
-        .3,
+        document.getElementById("renderModes").selectedIndex.toString(),
         indicators
     );
 
@@ -143,6 +144,17 @@ function volumeToDataTexture3D() {
     dataTexture.unpackAlignment = 1;
     dataTexture.wrapR = dataTexture.wrapS = dataTexture.wrapT = THREE.ClampToEdgeWrapping;
     dataTexture.needsUpdate = true;
+}
+
+function setupDropdown() {
+    d3.select("#tfContainer")
+        .select('#renderModes')
+        .on("change", onSelectChange)
+        .selectAll("option")
+        .data(renderModes)
+        .enter()
+        .append("option")
+        .html(d => d);
 }
 
 function setupD3() {
@@ -253,14 +265,7 @@ function setupD3() {
         .attr("transform", "translate(" + margin.left + ",0)")
         .call(d3.axisLeft(y));
 
-    d3.select("#tfContainer")
-        .select('#renderModes')
-        .on("change", onSelectChange)
-        .selectAll("option")
-        .data(renderModes)
-        .enter()
-        .append("option")
-        .html(d => d);
+    updateIndicators();
 }
 
 function updateIndicators() {
@@ -356,7 +361,6 @@ function colorToVector(col) {
 }
 
 function onSelectChange(event) {
-    console.log(event.target.selectedIndex);
     domainMesh.material.uniforms["render_mode"].value = event.target.selectedIndex.toString();
     domainMesh.material.needsUpdate = true;
     paint();
