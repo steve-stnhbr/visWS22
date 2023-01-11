@@ -176,7 +176,7 @@ function setupD3() {
 
     var y = d3.scaleLinear()
         .domain([0, d3.max(bins, d => d.length)])
-        .range([margin.bottom, height - margin.top]);
+        .range([0, height - margin.top]);
 
     var svg = d3.select("#tfContainer").append("svg")
         .attr("width", width)
