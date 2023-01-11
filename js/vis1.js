@@ -147,8 +147,8 @@ function volumeToDataTexture3D() {
 
 function setupD3() {
     const histogramElement = document.getElementById("tfContainer");
-    if (histogramElement.firstChild)
-        histogramElement.removeChild(histogramElement.firstChild);
+    if (histogramElement.children[2])
+        histogramElement.removeChild(histogramElement.children[2]);
     const width = histogramElement.offsetWidth,
         height = width * 3 / 4;
 

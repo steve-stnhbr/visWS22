@@ -7,7 +7,9 @@ struct Indicator {
 	vec3 color;
 };
 
-uniform Indicator indicators[5];
+const int NUM_INDICATORS = 5;
+
+uniform Indicator indicators[NUM_INDICATORS];
 
 uniform highp sampler3D volume;
 
@@ -29,11 +31,13 @@ const lowp float F_AMBIENT_OCCLUSION_RAY_AMOUNT = float(AMBIENT_OCCLUSION_RAY_AM
 const lowp float AMBIENT_OCCLUSION_RAY_LENGTH = .5;
 
 void castMIP(vec3 start, vec3 step, float stepSize, int stepAmount);
+void castFirstHitMultiple(highp vec3 start, highp vec3 step, highp float stepSize, int stepAmount, Indicator indicators[NUM_INDICATORS]);
 void castFirstHit(vec3 start, vec3 step, float stepSize, int stepAmount, float iso, vec4 color);
 void castAmbientOcclusion(vec3 start, vec3 step, float stepSize, int stepAmount);
 float sampleVolume(vec3 pos);
 vec4 calculateLighting(vec3 position, vec3 normal, float ambienOcclusion, vec4 baseColor);
 float calculateAmbientOcclusion(vec3 pos, float stepSize);
+vec3 interpolate(vec3 startPos, vec3 endPos, float startVal, float endVal, float interpolationVal);
 
 vec2 intersect_box(vec3 orig, vec3 dir) {
 	const vec3 box_min = vec3(0);
@@ -71,7 +75,7 @@ void main() {
 	t_hit.x = max(t_hit.x, 0.0);
 	
 	// Step 3: Compute the step size to march through the volume grid
-	vec3 dt_vec = 1.0 / (volume_dims * abs(ray_dir));
+	vec3 dt_vec = 1. / (volume_dims * abs(ray_dir));
 	float dt = min(dt_vec.x, min(dt_vec.y, dt_vec.z));
 
 	// Step 4: Starting from the entry point, march the ray through the volume
@@ -82,6 +86,10 @@ void main() {
 	if (render_mode == 0) {
 		castMIP(start, ray_dir, dt, stepAmount);
 	} else if (render_mode == 1) {
+		castFirstHitMultiple(start, ray_dir, dt, stepAmount, indicators);
+	} else if (render_mode == 2) {
+		castAmbientOcclusion(start, ray_dir, dt, stepAmount);
+	} else if (render_mode == 3) {
 		for (int i = 0; i < 5; i++) {
 			if (indicators[i].opacity > 0.) {
 				castFirstHit(
@@ -94,8 +102,6 @@ void main() {
 				);
 			}
 		}
-	} else if (render_mode == 2) {
-		castAmbientOcclusion(start, ray_dir, dt, stepAmount);
 	}
 }
 
@@ -113,36 +119,84 @@ void castMIP(vec3 start, vec3 step, float stepSize, int stepAmount) {
 	// gl_FragColor = vec4(1, 1, 1, maxVal);
 }
 
+
+void castFirstHitMultiple(highp vec3 start, highp vec3 step, highp float stepSize, int stepAmount, Indicator indicators[NUM_INDICATORS]) {
+	float epsilon = .008;
+	vec3 before = start;
+	vec4 color = vec4(0);
+	bool checked[NUM_INDICATORS] = bool[](false, false, false, false, false);
+    for (int i = 0; i < stepAmount; i++) {
+		bool allChecked = true;
+        float val = sampleVolume(start.xyz);
+		for (int i = 0; i < NUM_INDICATORS; i++) {
+			// check if the indicator is set
+			if (indicators[i].density > .0) {
+				// check if the indicator has already been drawn and should be drawn at the current point
+				if (!checked[i] && val >= indicators[i].density) {
+					// interpolated position between the position looked at before and current position to more accurateley resemble the density value
+					vec3 interpolated = interpolate(before, start, sampleVolume(before), sampleVolume(start), indicators[i].density);
+					// calculate the normal using the gradient
+					vec3 surfaceNormal = normalize(vec3(
+						sampleVolume((interpolated - vec3(epsilon, 0.0, 0.0))) - sampleVolume(interpolated + vec3(epsilon, 0.0, 0.0)),
+						sampleVolume((interpolated - vec3(0.0, epsilon, 0.0))) - sampleVolume(interpolated + vec3(0.0, epsilon, 0.0)),
+						sampleVolume((interpolated - vec3(0.0, 0.0, epsilon))) - sampleVolume(interpolated + vec3(0.0, 0.0, epsilon))
+					));
+
+					vec4 calculated = calculateLighting(interpolated, surfaceNormal, 1., vec4(indicators[i].color, 1));;
+					// pre-calculated alpha
+					vec4 c = vec4(calculated.rgb * indicators[i].opacity, indicators[i].opacity);
+					// front-to back compoition
+					color.rgb = (1.0 - c.a) * color.rgb + c.a * c.rgb;
+    				color.a = color.a + c.a * (1.0 - color.a);
+					checked[i] = true;
+				}
+				allChecked = allChecked && checked[i];
+			}
+		}
+
+		gl_FragColor = color;
+		
+		 if (allChecked) {
+		 	return;
+		}
+
+		before = start;
+        start += step * stepSize;
+    }
+}
+
 void castFirstHit(highp vec3 start, highp vec3 step, highp float stepSize, int stepAmount, float iso, vec4 baseColor) {
-	float epsilon = stepSize / 2.;
-	float epsilonX = 1. / volume_dims.x;
-	float epsilonY = 1. / volume_dims.y;
-	float epsilonZ = 1. / volume_dims.z;
+	float epsilon = .008;
+	vec3 before = start;
     for (int i = 0; i < stepAmount; i++) {
         float val = sampleVolume(start.xyz);
         if (val >= iso) {
+			// interpolatio position between the position looked at before and current position to more accurateley resemble the density value
+			vec3 interpolated = interpolate(before, start, sampleVolume(before), sampleVolume(start), iso);
 			vec3 surfaceNormal = normalize(vec3(
-				sampleVolume((start - vec3(epsilonX, 0.0, 0.0))) - sampleVolume(start + vec3(epsilonX, 0.0, 0.0)),
-				sampleVolume((start - vec3(0.0, epsilonY, 0.0))) - sampleVolume(start + vec3(0.0, epsilonY, 0.0)),
-				sampleVolume((start - vec3(0.0, 0.0, epsilonZ))) - sampleVolume(start + vec3(0.0, 0.0, epsilonZ))
+				sampleVolume((interpolated - vec3(epsilon, 0.0, 0.0))) - sampleVolume(interpolated + vec3(epsilon, 0.0, 0.0)),
+				sampleVolume((interpolated - vec3(0.0, epsilon, 0.0))) - sampleVolume(interpolated + vec3(0.0, epsilon, 0.0)),
+				sampleVolume((interpolated - vec3(0.0, 0.0, epsilon))) - sampleVolume(interpolated + vec3(0.0, 0.0, epsilon))
 			));
 
-			float ambientOcclusion = calculateAmbientOcclusion(start, stepSize);
-			gl_FragColor = vec4(vec3(ambientOcclusion), 1);
-			gl_FragColor = vec4(surfaceNormal, 1);
-			// gl_FragColor = vec4(epsilonX, epsilonY, epsilonZ, 1);
-			gl_FragColor = calculateLighting(start, surfaceNormal, 1., baseColor);
+			gl_FragColor = calculateLighting(interpolated, surfaceNormal, 1., baseColor);
 			return;
         }
+		before = start;
         start += step * stepSize;
     }
+}
+
+vec3 interpolate(vec3 startPos, vec3 endPos, float startVal, float endVal, float interpolationVal) {
+	return mix(startPos, endPos, (interpolationVal - startVal) / (endVal - startVal));
 }
 
 float sampleVolume(vec3 pos) {
 	return texture(volume, pos).r;
 }
 
-vec4 calculateLighting(vec3 pos, vec3 normal, float ambientOcclusion, vec4 baseColor) {
+vec4 calculateLighting(vec3 pos, vec3 normal, /*unused*/ float ambientOcclusion, vec4 baseColor) {
+	ambientOcclusion = 1.;
 	// Light position
 	vec3 lightPosition = cameraPosition;
 
