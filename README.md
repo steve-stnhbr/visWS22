@@ -3,7 +3,15 @@
 Load one of the provided volume files through the GUI. 
 Rotate the orbit camera around the bounding box using the left mouse button. Zoom using the scroll wheel. 
 
-**TODO: complete this section!** (how to use the editor etc.)
+
+On the right side of the screen you will see a dropdown containing options for the render mode.
+Below this dropdown you can see the histogram portraying the distribution of the density values present in the 
+currently loaded Volume.
+
+By clicking and dragging in the histogram you can data points for the transfer function. These are represented by a circle and a line. On the x-Axis the density value of the transfer function is selcted, on the y-axis the opacity of this part of the transfer function is selected. You can click on a transfer function indicator to either change its color (clicking on one of the squares) or remove the indicator completely (by clicking on remove). 
+The color context menu can be closed by either clicking on the x or anywhere outside on the histogram.
+
+If the rendermode is First Hit Projection at least on indicator has to be set for anything to be displayed
 
 ## Framework Description
 

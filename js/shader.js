@@ -25,7 +25,7 @@ class Shader {
     }
 
     async loadShader(shader, name) {
-        const program = await d3.text("shaders/" + name + ".glsl");
+        const program = await d3.text("shaders/" + name + ".essl");
         this.material[shader] = program;
     }
 
