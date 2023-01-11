@@ -176,8 +176,8 @@ function setupD3() {
             const opacity = event.offsetY / height;
 
             let ind = {
-                xValue: event.offsetX,
-                yValue: event.offsetY,
+                xValue: Math.max(margin.left, Math.min(width - margin.right, event.offsetX)),
+                yValue: Math.max(margin.top, Math.min(height - margin.bottom, event.offsetY)),
                 color: new THREE.Vector3(1, 1, 1),
                 density,
                 opacity
