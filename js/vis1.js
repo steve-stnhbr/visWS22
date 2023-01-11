@@ -36,7 +36,7 @@ const amount = 80;
 const indicatorRadius = 10;
 const colors = ["ffff00", "ff00ff"];
 
-const renderModes = ["Maximum Intensity Projection", "First Hit Projection", "Ambient Occlusion (beta)"];
+const renderModes = ["Maximum Intensity Projection", "First Hit Projection"];
 
 class Indicator {
     xValue;
@@ -328,7 +328,14 @@ function showColorSelection(circle, data) {
         .on("click", () => wrapper.attr("hidden", ""))
     picker.select(".remove")
         .on("click", () => {
+            console.log("deleting", data.index);
+            indicators.forEach((val, index) => {
+                if (index > data.index) {
+                    val.index = val.index - 1;
+                }
+            });
             indicators.splice(data.index, 1);
+            console.log(indicators);
             wrapper.attr("hidden", "")
             updateIndicators();
         });
