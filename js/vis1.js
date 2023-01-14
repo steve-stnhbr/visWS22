@@ -65,8 +65,6 @@ function init() {
     fileInput = document.getElementById("upload");
     fileInput.addEventListener('change', readFile);
 
-    fetch('../data/head_256x256x224.dat').then(res => res.blob().then(blob => readFile(blob)));
-
     window.onmousedown = () => mouseDown = true;
     window.onmouseup = window.onmouseleave = () => mouseDown = false;
     setupDropdown();
@@ -75,7 +73,7 @@ function init() {
 /**
  * Handles the file reader. No need to change anything here.
  */
-function readFile(file) {
+function readFile() {
     let reader = new FileReader();
     reader.onloadend = function() {
 
@@ -85,7 +83,7 @@ function readFile(file) {
         resetVis();
         setupD3();
     };
-    reader.readAsArrayBuffer(fileInput.files[0] || file);
+    reader.readAsArrayBuffer(fileInput.files[0]);
 }
 
 /**
