@@ -13,7 +13,6 @@ uniform Indicator indicators[NUM_INDICATORS];
 
 uniform highp sampler3D volume;
 
-uniform highp sampler2D transfer_fcn;
 uniform vec3 volume_dims;
 uniform lowp int render_mode;
 uniform mediump float iso_value;
@@ -55,11 +54,6 @@ vec2 intersect_box(vec3 orig, vec3 dir) {
 	float t0 = max(tmin.x, max(tmin.y, tmin.z));
 	float t1 = min(tmax.x, min(tmax.y, tmax.z));
 	return vec2(t0, t1);
-}
-
-
-vec4 sampleColor(float val) {
-    return texture2D(transfer_fcn, vec2(val, 0.5));
 }
 
 void main() {

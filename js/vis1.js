@@ -96,26 +96,15 @@ async function resetVis() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, canvasWidth / canvasHeight, 0.1, 1000);
     volumeToDataTexture3D();
-    // const shader = new ShaderImpl(
-    //     [volume.width, volume.height, volume.depth],
-    //     0,
-    //     .34, [0, 1],
-    //     dataTexture,
-    //     await new THREE.TextureLoader().load('textures/cm_viridis.png'));
 
-    const max = Math.max(volume.width, volume.height, volume.depth);
-
-    shader = new ShaderExm(
-        dataTexture,
-        await new THREE.TextureLoader().load('textures/cm_viridis.png'), [volume.width, volume.height, volume.depth],
+    shader = new ShaderImpl(
+        dataTexture, [volume.width, volume.height, volume.depth],
         document.getElementById("renderModes").selectedIndex.toString(),
         indicators
     );
 
     await shader.load();
     const domain = new THREE.BoxGeometry(volume.width, volume.depth, volume.height);
-    // domain.translate(volume.width / 2, volume.depth / 2, volume.height / 4);
-    // position markers
     domainMesh = new THREE.Mesh(domain, shader.material);
     scene.add(domainMesh);
     // our camera orbits around an object centered at (0,0,0)
@@ -132,7 +121,6 @@ function paint() {
         renderer.render(scene, camera);
     }
 }
-
 
 function volumeToDataTexture3D() {
     dataTexture = new THREE.Data3DTexture(volume.voxels, volume.width, volume.height, volume.depth);
@@ -257,7 +245,6 @@ function setupD3() {
         .attr("style", "user-select: none")
         .call(d3.axisTop(x));
 
-    // Append the y-axis to the visualization
     svg.append("g")
         .attr("class", "axis")
         .attr("transform", "translate(" + margin.left + ",0)")

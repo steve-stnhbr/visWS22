@@ -1,12 +1,29 @@
 class ShaderImpl extends Shader {
-    constructor(size, style, iso, cLimit, data, colorMap) {
-        super("mip_vert", "mip_frag");
-        this.setUniform("size", new THREE.Vector3(size[0], size[1], size[2]), "vec3");
-        this.setUniform("renderStyle", style, "int");
-        this.setUniform("isoThreshold", iso, "float");
-        this.setUniform("cLimit", new THREE.Vector2(cLimit[0], cLimit[1]), "vec2");
-        this.setUniform("data", data, "sampler3D");
-        this.setUniform("colorMap", colorMap, "sampler2D");
+    constructor(data, dims, renderMode, indicators) {
+        super("volume_vert", "volume_frag");
+        this.setUniform("volume", data, "sampler3D");
+        this.setUniform("volume_dims", new THREE.Vector3(dims[0], dims[1], dims[2]), 'vec3');
+        this.setUniform("render_mode", renderMode, "int");
+        this.setUniform("indicators", this.prepareIndicators(indicators), "Indicator");
+        this.material.transparent = true;
+        this.material.depthWrite = false;
+        this.material.side = THREE.DoubleSide;
+    }
+
+    updateIndicators(indicators) {
+        this.material.uniforms.indicators.value = this.prepareIndicators(indicators);
+        this.material.needsUpdate = true;
+    }
+
+    prepareIndicators(indicators) {
+        return Array.from({
+            ...indicators.map(({ xValue, yValue, ...keep }) => keep),
+            length: 5
+        }, (v) => v || {
+            opacity: 0,
+            density: 0,
+            color: new THREE.Vector3(1, 1, 1)
+        });
     }
 
 }
